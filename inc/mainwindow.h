@@ -2,21 +2,23 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QtWidgets>
+#include <QSqlTableModel>
+#include "inc/mydb.hpp"
 
-namespace Ui {
-class MainWindow;
-}
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    MainWindow(MyDb &db, QWidget *parent = 0);
 
 private:
-    Ui::MainWindow *ui;
+   QSqlTableModel *model;
+   QTableView *trackView;
+   QLineEdit *filter;
+
 };
 
 #endif // MAINWINDOW_H
