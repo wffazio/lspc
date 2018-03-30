@@ -1,10 +1,14 @@
 #include "inc/mainwindow.h"
 #include <QtWidgets>
+#include "inc/spotifyappauthentication.h"
 
-
-MainWindow::MainWindow(MyDb &cdb, QWidget *parent) :
-    QMainWindow(parent)
+/*---------------------------------------------------------------------------*/
+MainWindow::MainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
 {
+    SpotifyAppAuthentication *at = new SpotifyAppAuthentication();
+
+    at->authenticate();
+
     model = new QSqlTableModel;
     trackView = new QTableView;
 
@@ -64,9 +68,11 @@ MainWindow::MainWindow(MyDb &cdb, QWidget *parent) :
     controlBoxLayout->setMargin(20);
 
     controlsBox->setLayout(controlBoxLayout);
-
-
     gridLayout->addWidget(controlsBox,2,0);
+
+    QLabel * nameLabel = new QLabel("Logged As: ");
+
+    gridLayout->addWidget(nameLabel,0,1);
 
     QWidget *widget = new QWidget;
     widget->setLayout(gridLayout);

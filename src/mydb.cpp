@@ -2,8 +2,11 @@
 #include <QMessageBox>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QDebug>
 #include "inc/mydb.hpp"
 
+
+/*---------------------------------------------------------------------------*/
 bool MyDb::connect()
 {
     db = QSqlDatabase::addDatabase("QSQLITE");
@@ -21,18 +24,20 @@ bool MyDb::connect()
     else
     {
         this->activeTable = "tracks";
-
         if (!db.tables().contains(this->activeTable))
         {
+            qDebug() << "First playlist DB creation";
 
-            query.exec("create table tracks (trackid integer PRIMARY KEY AUTOINCREMENT, artist varchar(64), trackname varchar(64))");
-
-            query.exec("insert into tracks (artist,trackname) values('Van Canto', 'The Mission')");
-            query.exec("insert into tracks (artist,trackname) values('Van Canto', 'Lifetime')");
-            query.exec("insert into tracks (artist,trackname) values('Metallica', 'Sad But True')");
+            query.exec("create table tracks (trackid integer PRIMARY KEY "
+                       "AUTOINCREMENT, artist varchar(64), "
+                       "trackname varchar(64))");
+            query.exec("insert into tracks (artist,trackname) "
+                       "values('Van Canto', 'The Mission')");
+            query.exec("insert into tracks (artist,trackname) "
+                       "values('Van Canto', 'Lifetime')");
+            query.exec("insert into tracks (artist,trackname) "
+                       "values('Metallica', 'Sad But True')");
         }
-
-
         ret = true;
     }
 
