@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core
 QT += sql widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -33,8 +33,7 @@ HEADERS += \
     inc/mainwindow.h \
     inc/mydb.hpp
 
-FORMS += \
-    forms/mainwindow.ui
+requires(qtConfig(tableview))
 
 RESOURCES += \
     res/lsp.qrc

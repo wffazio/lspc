@@ -6,7 +6,7 @@
 
 bool MyDb::connect()
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("playlist.db");
     QSqlQuery query;
     bool ret = false;
@@ -20,13 +20,18 @@ bool MyDb::connect()
     }
     else
     {
-        query.exec("create table tracks (trackid integer primary key autoincrement, "
-                   "artist varchar(64), "
-                   "trackname varchar(64))");
+        this->activeTable = "tracks";
 
-        query.exec("insert into tracks values('Van Canto', 'The Mission'");
-        query.exec("insert into tracks values('Van Canto', 'Lifetime'");
-        query.exec("insert into tracks values('Metallica', 'Sad But True'");
+        if (!db.tables().contains(this->activeTable))
+        {
+
+            query.exec("create table tracks (trackid integer PRIMARY KEY AUTOINCREMENT, artist varchar(64), trackname varchar(64))");
+
+            query.exec("insert into tracks (artist,trackname) values('Van Canto', 'The Mission')");
+            query.exec("insert into tracks (artist,trackname) values('Van Canto', 'Lifetime')");
+            query.exec("insert into tracks (artist,trackname) values('Metallica', 'Sad But True')");
+        }
+
 
         ret = true;
     }
