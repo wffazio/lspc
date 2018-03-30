@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core
-QT += sql widgets
+QT += sql widgets networkauth
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,11 +27,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     src/mydb.cpp \
     src/main.cpp \
-    src/mainwindow.cpp
+    src/mainwindow.cpp \
+    src/spotifyappauthentication.cpp
 
 HEADERS += \
     inc/mainwindow.h \
-    inc/mydb.hpp
+    inc/mydb.hpp \
+    inc/spotifyappauthentication.h
 
 requires(qtConfig(tableview))
 
