@@ -27,13 +27,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     src/mydb.cpp \
     src/main.cpp \
-    src/mainwindow.cpp \
-    src/spotifyappauthentication.cpp
+    src/spotifyappauthentication.cpp \
+    src/tabbedwindow.cpp \
+    src/playercontrols.cpp \
+    src/spotifywebapi.cpp \
+    src/appmainwindow.cpp
 
 HEADERS += \
-    inc/mainwindow.h \
     inc/mydb.hpp \
-    inc/spotifyappauthentication.h
+    inc/spotifyappauthentication.h \
+    inc/tabbedwindow.h \
+    inc/playercontrols.h \
+    inc/spotifywebapi.h \
+    inc/appmainwindow.h
 
 requires(qtConfig(tableview))
 

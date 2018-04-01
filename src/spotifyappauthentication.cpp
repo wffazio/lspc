@@ -7,6 +7,8 @@
 #define ACCOUNTS_URL "https://accounts.spotify.com/"
 #define API_URL "https://api.spotify.com/v1/"
 
+
+
 /*---------------------------------------------------------------------------*/
 bool SpotifyAppAuthentication::authenticate()
 {
@@ -33,6 +35,8 @@ bool SpotifyAppAuthentication::authenticate()
 
     spotifyAuth.grant();
 
+    userName = "Granting...";
+
     return  true;
 }
 
@@ -41,6 +45,8 @@ void SpotifyAppAuthentication::updateUserData()
 {
     QUrl u (API_URL "me");
     auto reply = spotifyAuth.get(u);
+
+    userName = "Retrieving...";
 
     connect(reply, &QNetworkReply::finished,
                     [=]()
@@ -62,11 +68,16 @@ void SpotifyAppAuthentication::updateUserData()
                     });
 }
 
+
+
 /*---------------------------------------------------------------------------*/
 void SpotifyAppAuthentication::granted ()
 {
-    QString token = spotifyAuth.token();
-    qDebug()<< "Token: " << token  << " has granted access";
+    ;
+    qDebug()<< "Token: " << spotifyAuth.token()  << " has granted access";
+    qDebug()<< "RToken: " << spotifyAuth.refreshToken()  << " has granted access";
+    qDebug()<< "Expiren: " << spotifyAuth.expirationAt().toString() << " has granted access";
+
     isGranted = true;
     updateUserData();
 }
@@ -77,12 +88,13 @@ void SpotifyAppAuthentication::authStatusChanged(QAbstractOAuth::Status status)
 {
     QString s;
     if (status == QAbstractOAuth::Status::Granted)
-    {
-        s = "granted";
+    {        
+        s = "granted";        
     }
 
     if (status == QAbstractOAuth::Status::TemporaryCredentialsReceived)
     {
+        userName = "Temporary";
         s = "temp credentials";
     }
 
@@ -100,3 +112,11 @@ SpotifyAppAuthentication::~SpotifyAppAuthentication()
 {
 
 }
+
+/*---------------------------------------------------------------------------*/
+QString SpotifyAppAuthentication::getUserName()
+{
+    return userName;
+}
+
+

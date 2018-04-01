@@ -12,12 +12,12 @@ public:
     SpotifyAppAuthentication();
     ~SpotifyAppAuthentication();
     bool authenticate();
+    QString getUserName();
 
-    QString getUserName() const;
 
 private:
-    const QString clientId = "aaa";
-    const QString clientSecret = "bbb";
+    const QString clientId = "e5a26b574c264d499339f7e4b95de71b";
+    const QString clientSecret = "26ef8aa25043406b9fd233191b456379";
     void updateUserData();
     QOAuth2AuthorizationCodeFlow spotifyAuth;
     bool isGranted;
@@ -26,6 +26,7 @@ private:
 private slots:
     void granted();
     void authStatusChanged (QAbstractOAuth::Status status);
+
 };
 
 #endif // SPOTIFYAPPAUTHENTICATION_H
