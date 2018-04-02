@@ -16,18 +16,21 @@ class TabbedMainWindow : public QTabWidget
     TabbedMainWindow(MyDb &cdb, QWidget *parent = 0);
     PlayerControls * player;
 
-private:
-    QSqlTableModel *tableModel_;
-    SpotifyAppAuthentication *currentAuthentication_;
 
+private:
+    QSqlTableModel *tableModel_ = nullptr;
+    QLabel * activeUserWdg_ = nullptr;
     QTableView * createPlaylistView_ (QSqlTableModel*);
     QSqlTableModel * createTableModelForPlaylist_(MyDb &cdb);
     QWidget * createPlaylistTab_(PlayerControls *player, QSqlTableModel*model);
     QGroupBox * createPlaylistViewBox_(QSqlTableModel*);
     QGroupBox * createPlayerControlsBox_();
 
-    public slots:
-    void currentTabChangedSlot(int index);
+public slots:
+    void updateTabsWithUserDataSlot(QString userName);
+
+private slots:
+    void currentTabChangedSlot_(int index);
 };
 
 #endif // TABBEDMAINWINDOW_H

@@ -17,9 +17,11 @@ public:
     AppMainWindow(MyDb &db, QWidget *parent = 0);
 
 private:
-    SpotifyWebApi * spotifyApis;
-    TabbedMainWindow * tabsInstance;
+    SpotifyAppAuthentication *currentAuthentication_;
+    SpotifyWebApi * spotifyApis_;
+    TabbedMainWindow * tabsInstance_;
     void about();
+
 };
 
 #endif // MAINWINDOW_H

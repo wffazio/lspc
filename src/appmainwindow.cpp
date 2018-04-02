@@ -10,13 +10,18 @@ AppMainWindow::AppMainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
     QWidget *mainWidget = new QWidget(parent);
     QVBoxLayout *mainLayout = new QVBoxLayout(parent);
 
-    tabsInstance = new TabbedMainWindow(cdb,parent);
-    this->spotifyApis = new SpotifyWebApi();
+    currentAuthentication_ = new SpotifyAppAuthentication();
+    currentAuthentication_->authenticate();
 
-    connect(tabsInstance->player, &PlayerControls::playSig,this->spotifyApis, &SpotifyWebApi::play);
-    connect(tabsInstance->player, &PlayerControls::pauseSig,this->spotifyApis, &SpotifyWebApi::play);
+    tabsInstance_ = new TabbedMainWindow(cdb,parent);
+    this->spotifyApis_ = new SpotifyWebApi();
 
-    mainLayout->addWidget(tabsInstance);
+    connect(tabsInstance_->player, &PlayerControls::playSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
+    connect(tabsInstance_->player, &PlayerControls::pauseSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
+    connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,
+                    tabsInstance_, TabbedMainWindow::updateTabsWithUserDataSlot);
+
+    mainLayout->addWidget(tabsInstance_);
     mainWidget->setLayout(mainLayout);
     setCentralWidget(mainWidget);
     setWindowTitle(tr("Local Spotify Playlist Creator"));
@@ -37,3 +42,5 @@ void AppMainWindow::about()
             tr("<p>The <b>Local Spotify Playlist Creator</b> allows to create"
                " a local playlist based on Spotify Web API</p>"));
 }
+
+

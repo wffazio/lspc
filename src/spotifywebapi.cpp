@@ -10,7 +10,7 @@ SpotifyWebApi::SpotifyWebApi(QWidget *parent): QWidget(parent)
 }
 
 
-void SpotifyWebApi::play()
+void SpotifyWebApi::playSlot()
 {
     qDebug() << "Playing";
 }

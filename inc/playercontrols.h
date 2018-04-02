@@ -9,10 +9,10 @@ class PlayerControls : public QWidget
 public:
     PlayerControls(QWidget *parent = nullptr);
 private:
-    bool isPlaying = false;
-    QToolButton *btnPlayPause = nullptr;
-    QToolButton *btnNext= nullptr;
-    QToolButton *btnPrev= nullptr;
+    bool isPlaying_ = false;
+    QToolButton *btnPlayPause_ = nullptr;
+    QToolButton *btnNext_= nullptr;
+    QToolButton *btnPrev_= nullptr;
 
 signals:
     void nextClickedSig();
@@ -21,7 +21,7 @@ signals:
     void pauseSig();
 
 private slots:
-    void playClickedSlot();
+    void playClickedSlot_();
 };
 
 #endif // PLAYERCONTROLS_H

@@ -14,39 +14,39 @@ bool SpotifyAppAuthentication::authenticate()
 {
     quint16 port(8080);
     auto replyHandler = new QOAuthHttpServerReplyHandler(port, this);
-    spotifyAuth.setReplyHandler(replyHandler);
-    spotifyAuth.setAuthorizationUrl(QUrl(ACCOUNTS_URL "authorize"));
-    spotifyAuth.setAccessTokenUrl(QUrl(ACCOUNTS_URL "api/token"));
-    spotifyAuth.setClientIdentifier(clientId);
-    spotifyAuth.setClientIdentifierSharedKey(clientSecret);
-    spotifyAuth.setScope("user-read-private user-top-read "
+    spotifyAuth_.setReplyHandler(replyHandler);
+    spotifyAuth_.setAuthorizationUrl(QUrl(ACCOUNTS_URL "authorize"));
+    spotifyAuth_.setAccessTokenUrl(QUrl(ACCOUNTS_URL "api/token"));
+    spotifyAuth_.setClientIdentifier(clientId_);
+    spotifyAuth_.setClientIdentifierSharedKey(clientSecret_);
+    spotifyAuth_.setScope("user-read-private user-top-read "
                          "playlist-read-private playlist-modify-public "
                          "playlist-modify-private");
 
-    this->connect(&spotifyAuth,
+    this->connect(&spotifyAuth_,
                     &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser,
                     &QDesktopServices::openUrl);
 
-    this->connect(&spotifyAuth, &QOAuth2AuthorizationCodeFlow::statusChanged,
-                    this, &SpotifyAppAuthentication::authStatusChanged);
+    this->connect(&spotifyAuth_, &QOAuth2AuthorizationCodeFlow::statusChanged,
+                    this, &SpotifyAppAuthentication::authStatusChangedSlot_);
 
-    this->connect(&spotifyAuth, &QOAuth2AuthorizationCodeFlow::granted,
-                    this, &SpotifyAppAuthentication::granted);
+    this->connect(&spotifyAuth_, &QOAuth2AuthorizationCodeFlow::granted,
+                    this, &SpotifyAppAuthentication::grantedSlot_);
 
-    spotifyAuth.grant();
+    spotifyAuth_.grant();
 
-    userName = "Granting...";
+    userName_ = "Granting...";
 
     return  true;
 }
 
 /*---------------------------------------------------------------------------*/
-void SpotifyAppAuthentication::updateUserData()
+void SpotifyAppAuthentication::updateUserData_()
 {
     QUrl u (API_URL "me");
-    auto reply = spotifyAuth.get(u);
+    auto reply = spotifyAuth_.get(u);
 
-    userName = "Retrieving...";
+    userName_ = "Retrieving...";
 
     connect(reply, &QNetworkReply::finished,
                     [=]()
@@ -61,8 +61,9 @@ void SpotifyAppAuthentication::updateUserData()
                             qDebug(data);
                             const auto document = QJsonDocument::fromJson(data);
                             const auto root = document.object();
-                            userName = root.value("display_name").toString();
-                            qDebug() << "Username: " << userName;
+                            userName_ = root.value("display_name").toString();
+                            qDebug() << "Username: " << userName_;
+                            emit userDataReceivedSig(userName_);
                             reply->deleteLater();
                         }
                     });
@@ -71,20 +72,20 @@ void SpotifyAppAuthentication::updateUserData()
 
 
 /*---------------------------------------------------------------------------*/
-void SpotifyAppAuthentication::granted ()
+void SpotifyAppAuthentication::grantedSlot_ ()
 {
     ;
-    qDebug()<< "Token: " << spotifyAuth.token()  << " has granted access";
-    qDebug()<< "RToken: " << spotifyAuth.refreshToken()  << " has granted access";
-    qDebug()<< "Expiren: " << spotifyAuth.expirationAt().toString() << " has granted access";
+    qDebug()<< "Token: " << spotifyAuth_.token()  << " has granted access";
+    qDebug()<< "RToken: " << spotifyAuth_.refreshToken()  << " has granted access";
+    qDebug()<< "Expiren: " << spotifyAuth_.expirationAt().toString() << " has granted access";
 
-    isGranted = true;
-    updateUserData();
+    isGranted_ = true;
+    updateUserData_();
 }
 
 
 /*---------------------------------------------------------------------------*/
-void SpotifyAppAuthentication::authStatusChanged(QAbstractOAuth::Status status)
+void SpotifyAppAuthentication::authStatusChangedSlot_(QAbstractOAuth::Status status)
 {
     QString s;
     if (status == QAbstractOAuth::Status::Granted)
@@ -94,7 +95,7 @@ void SpotifyAppAuthentication::authStatusChanged(QAbstractOAuth::Status status)
 
     if (status == QAbstractOAuth::Status::TemporaryCredentialsReceived)
     {
-        userName = "Temporary";
+        userName_ = "Temporary";
         s = "temp credentials";
     }
 
@@ -116,7 +117,7 @@ SpotifyAppAuthentication::~SpotifyAppAuthentication()
 /*---------------------------------------------------------------------------*/
 QString SpotifyAppAuthentication::getUserName()
 {
-    return userName;
+    return userName_;
 }
 
 

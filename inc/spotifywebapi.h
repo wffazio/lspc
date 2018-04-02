@@ -10,7 +10,7 @@ public:
     SpotifyWebApi(QWidget *parent = nullptr);
 
 public slots:
-    void play();
+    void playSlot();
 };
 
 #endif // SPOTIFYWEBAPI_H

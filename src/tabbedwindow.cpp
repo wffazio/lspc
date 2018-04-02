@@ -2,8 +2,6 @@
 #include "inc/playercontrols.h"
 #include "inc/appmainwindow.h"
 
-static QLabel * activeUserWdg_;
-static int accountTabIndex_=-1;
 
 /*---------------------------------------------------------------------------*/
 QSqlTableModel *
@@ -26,8 +24,6 @@ TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 
     tableModel_ = createTableModelForPlaylist_(cdb);
     player = new PlayerControls();
-    currentAuthentication_ = new SpotifyAppAuthentication();
-    currentAuthentication_->authenticate();
 
     this->addTab(createPlaylistTab_(player,tableModel_),tr("Player"));
     QVBoxLayout *accountBoxLayout = new QVBoxLayout;
@@ -39,8 +35,8 @@ TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 
 
     this->addTab(searchTabWdg,tr("Search"));
-    accountTabIndex_=this->addTab(accountTabWdg,tr("Account"));
-    connect(this,QTabWidget::currentChanged,this,TabbedMainWindow::currentTabChangedSlot);
+    this->addTab(accountTabWdg,tr("Account"));
+    connect(this,QTabWidget::currentChanged,this,TabbedMainWindow::currentTabChangedSlot_);
 
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addWidget(tabWidget);
@@ -51,13 +47,18 @@ TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 
 /*---------------------------------------------------------------------------*/
 void
-TabbedMainWindow::currentTabChangedSlot(int index)
+TabbedMainWindow::currentTabChangedSlot_(int index)
 {
-    if (index == accountTabIndex_)
-    {
-        activeUserWdg_->setText("Logged as: " + currentAuthentication_->getUserName());
-    }
+    qDebug() << "Tab has changed:" << index;
 
+
+}
+
+
+/*---------------------------------------------------------------------------*/
+void TabbedMainWindow::updateTabsWithUserDataSlot(QString userName)
+{
+    activeUserWdg_->setText("Logged as: " +userName);
 }
 
 

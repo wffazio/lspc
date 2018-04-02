@@ -16,16 +16,20 @@ public:
 
 
 private:
-    const QString clientId = "e5a26b574c264d499339f7e4b95de71b";
-    const QString clientSecret = "26ef8aa25043406b9fd233191b456379";
-    void updateUserData();
-    QOAuth2AuthorizationCodeFlow spotifyAuth;
-    bool isGranted;
-    QString userName = "None";
+    const QString clientId_ = "xxx";
+    const QString clientSecret_ = "xxx";
+    void updateUserData_();
+    QOAuth2AuthorizationCodeFlow spotifyAuth_;
+    bool isGranted_;
+    QString userName_ = "None";
 
 private slots:
-    void granted();
-    void authStatusChanged (QAbstractOAuth::Status status);
+    void grantedSlot_();
+    void authStatusChangedSlot_ (QAbstractOAuth::Status status);
+
+signals:
+    void userDataReceivedSig(QString userName);
+
 
 };
 
