@@ -62,8 +62,9 @@ void SpotifyAppAuthentication::updateUserData_()
                             const auto document = QJsonDocument::fromJson(data);
                             const auto root = document.object();
                             userName_ = root.value("display_name").toString();
-                            qDebug() << "Username: " << userName_;
-                            emit userDataReceivedSig(userName_);
+                            userId_ = root.value("id").toString();
+                            qDebug() << "Username: (id)" << userName_ <<"(" <<userId_ <<")";
+                            emit userDataReceivedSig(userId_, userName_);
                             reply->deleteLater();
                         }
                     });

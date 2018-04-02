@@ -27,7 +27,7 @@ private:
     QGroupBox * createPlayerControlsBox_();
 
 public slots:
-    void updateTabsWithUserDataSlot(QString userName);
+    void updateTabsWithUserDataSlot(QString userId, QString userName);
 
 private slots:
     void currentTabChangedSlot_(int index);

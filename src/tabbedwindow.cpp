@@ -56,9 +56,9 @@ TabbedMainWindow::currentTabChangedSlot_(int index)
 
 
 /*---------------------------------------------------------------------------*/
-void TabbedMainWindow::updateTabsWithUserDataSlot(QString userName)
+void TabbedMainWindow::updateTabsWithUserDataSlot(QString userId, QString userName)
 {
-    activeUserWdg_->setText("Logged as: " +userName);
+    activeUserWdg_->setText("Logged as: " +userName +"\n" + userId);
 }
 
 

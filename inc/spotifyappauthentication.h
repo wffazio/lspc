@@ -22,13 +22,14 @@ private:
     QOAuth2AuthorizationCodeFlow spotifyAuth_;
     bool isGranted_;
     QString userName_ = "None";
+    QString userId_ = "";
 
 private slots:
     void grantedSlot_();
     void authStatusChangedSlot_ (QAbstractOAuth::Status status);
 
 signals:
-    void userDataReceivedSig(QString userName);
+    void userDataReceivedSig(QString userId, QString userName);
 
 
 };
