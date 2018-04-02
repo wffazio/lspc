@@ -3,6 +3,11 @@
 #include <QStyle>
 #include <QBoxLayout>
 
+
+#define DEFAULT_BUTTON_H (40)
+#define DEFAULT_BUTTON_W (DEFAULT_BUTTON_H*3)
+
+
 PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
 {
     QHBoxLayout *controlBoxLayout = new QHBoxLayout;
@@ -21,11 +26,18 @@ PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
 
     connect(btnPrev_, &QAbstractButton::clicked, this, &PlayerControls::prevClickedSig);
 
-    controlBoxLayout->addWidget(btnPrev_,0,Qt::AlignLeft|Qt::AlignBottom);
-    controlBoxLayout->addWidget(btnPlayPause_,1,Qt::AlignCenter|Qt::AlignBottom);
-    controlBoxLayout->addWidget(btnNext_,0,Qt::AlignRight|Qt::AlignBottom);
+    btnNext_->setEnabled(false);
+    btnPrev_->setEnabled(false);
+    //btnNext_->adjustSize();
+    btnNext_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
+    btnPrev_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
+    btnPlayPause_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
 
-    controlBoxLayout->setMargin(20);
+    controlBoxLayout->addWidget(btnPrev_);
+    controlBoxLayout->addWidget(btnPlayPause_);
+    controlBoxLayout->addWidget(btnNext_);
+
+    //controlBoxLayout->setMargin(20);
 
     this->setLayout(controlBoxLayout);
 
@@ -35,10 +47,16 @@ void PlayerControls::playClickedSlot_()
 {
     if (isPlaying_)
     {
+        btnPlayPause_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+        btnNext_->setEnabled(false);
+        btnPrev_->setEnabled(false);
         emit pauseSig();
     }
     else
     {
+        btnPlayPause_->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+        btnNext_->setEnabled(true);
+        btnPrev_->setEnabled(true);
         emit playSig();
     }
     isPlaying_ = !isPlaying_;
