@@ -23,20 +23,23 @@ bool MyDb::connect()
     }
     else
     {
-        this->activeTable = "tracks";
-        if (!db.tables().contains(this->activeTable))
+        this->tracksTable = "tracks";
+        if (!db.tables().contains(this->tracksTable))
         {
             qDebug() << "First playlist DB creation";
 
-            query.exec("create table tracks (trackid integer PRIMARY KEY "
-                       "AUTOINCREMENT, artist varchar(64), "
-                       "trackname varchar(64))");
-            query.exec("insert into tracks (artist,trackname) "
-                       "values('Van Canto', 'The Mission')");
-            query.exec("insert into tracks (artist,trackname) "
-                       "values('Van Canto', 'Lifetime')");
-            query.exec("insert into tracks (artist,trackname) "
-                       "values('Metallica', 'Sad But True')");
+            query.exec("create table tracks "
+                       "(trackid integer PRIMARY KEY AUTOINCREMENT, "
+                       "trackname varchar(64), "
+                       "album varchar(64), "
+                       "artist varchar(64), "
+                       "preview varchar(256))");
+            query.exec("insert into tracks (trackname,album,artist,preview) "
+                       "values('The Mission','Hero','Van Canto','')");
+            query.exec("insert into tracks (trackname,album,artist,preview) "
+                       "values('Lifetime','Hero','Van Canto','')");
+            query.exec("insert into tracks (trackname,album,artist,preview) "
+                       "values('Sad But True','Metallica (Black Album)','Metallica','')");
         }
         ret = true;
     }

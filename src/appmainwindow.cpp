@@ -32,6 +32,9 @@ AppMainWindow::AppMainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
     connect(aboutAction, &QAction::triggered,
             this, &AppMainWindow::about);
 
+    connect(currentAuthentication_, &SpotifyAppAuthentication::spotifyTokenReceivedSig,
+            spotifyApis_, &SpotifyWebApi::storeToken);
+
 }
 
 
