@@ -4,7 +4,7 @@
 class MyDb
 {
 public:
-    QString activeTable;
+    QString tracksTable;
     QSqlDatabase db;
     bool connect();
 };
