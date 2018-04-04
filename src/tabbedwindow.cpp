@@ -4,28 +4,36 @@
 #include <QHeaderView>
 
 
+#define PLAYLIST_MINIMUM_WIDTH 500
+
 /*---------------------------------------------------------------------------*/
 QSqlTableModel *
-TabbedMainWindow::createTableModelForPlaylist_(MyDb &cdb)
+TabbedMainWindow::createTableModelForPlaylist_(MyDb *cdb)
 {
     QSqlTableModel * tableModelLocal = new QSqlTableModel;
-    tableModelLocal->setTable(cdb.tracksTable);
+
+    tableModelLocal->setTable(cdb->tracksTableName());
     tableModelLocal->setEditStrategy(QSqlTableModel::OnManualSubmit);
     tableModelLocal->select();
+    tableModelLocal->setHeaderData(0, Qt::Horizontal, tr("ID"));
+    tableModelLocal->setHeaderData(1, Qt::Horizontal, tr("Música"));
+    tableModelLocal->setHeaderData(2, Qt::Horizontal, tr("Álbum"));
+    tableModelLocal->setHeaderData(3, Qt::Horizontal, tr("Artista"));
+    tableModelLocal->setHeaderData(4, Qt::Horizontal, tr("Preview URL"));
     return tableModelLocal;
 }
 
 
 
 /*---------------------------------------------------------------------------*/
-TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
+TabbedMainWindow::TabbedMainWindow(MyDb *cdb, QWidget *parent)
 {    
     QWidget *searchTabWdg = new QWidget(parent);
     QWidget *accountTabWdg = new QWidget(parent);
 
-    tableModel_ = createTableModelForPlaylist_(cdb);
+    playlistTableModel_ = createTableModelForPlaylist_(cdb);
     player = new PlayerControls();
-    this->addTab(createPlaylistTab_(player,tableModel_),tr("Player"));
+    this->addTab(createPlaylistTab_(player,playlistTableModel_),tr("Player"));
     QVBoxLayout *accountBoxLayout = new QVBoxLayout;
 
     activeUserWdg_ = new QLabel("Logged As: ");
@@ -44,23 +52,6 @@ TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 
     //setWindowTitle(tr("Local Spotify Playlist Creator"));
 }
-
-/*---------------------------------------------------------------------------*/
-void
-TabbedMainWindow::currentTabChangedSlot_(int index)
-{
-    qDebug() << "Tab has changed:" << index;
-
-
-}
-
-
-/*---------------------------------------------------------------------------*/
-void TabbedMainWindow::updateTabsWithUserDataSlot(QString userId, QString userName)
-{
-    activeUserWdg_->setText("Logged as: " +userName +"\n" + userId);
-}
-
 
 
 /*---------------------------------------------------------------------------*/
@@ -97,7 +88,6 @@ TabbedMainWindow::createPlaylistView_(QSqlTableModel*table)
 QGroupBox *
 TabbedMainWindow::createPlaylistViewBox_(QSqlTableModel*table)
 {
-    static QTableView *trackViewWdg_;
     static QLineEdit *filterWdg_;
     QVBoxLayout *tracklistBoxLayout = new QVBoxLayout;
     QGroupBox * tracksListBox = new QGroupBox(QObject::tr("Faixas"));
@@ -126,10 +116,53 @@ TabbedMainWindow::createPlaylistTab_(PlayerControls *player,
     gridLayout->setColumnStretch(1, 1);
     gridLayout->setColumnStretch(0, 1);
     /*second column is empty yet*/
-    gridLayout->setColumnMinimumWidth(0, 400);
+    gridLayout->setColumnMinimumWidth(0,PLAYLIST_MINIMUM_WIDTH);
     gridLayout->setColumnMinimumWidth(1,200);
 
     localPlaylistTab->setLayout(gridLayout);
     return localPlaylistTab;
 }
 
+
+/*---------------------------------------------------------------------------*/
+void
+TabbedMainWindow::currentTabChangedSlot_(int index)
+{
+    qDebug() << "Tab has changed:" << index;
+    this->currentWidget()->repaint();
+}
+
+
+/*---------------------------------------------------------------------------*/
+void TabbedMainWindow::updateTabsWithUserDataSlot(QString userId, QString userName)
+{
+    activeUserWdg_->setText("Logged as: " +userName +"\n" + userId);
+}
+
+
+/*---------------------------------------------------------------------------*/
+void TabbedMainWindow::updateTabsWithPlaylistSlot(const QVariantMap & track)
+{
+    qDebug() << track;
+    trackViewWdg_->repaint();
+}
+
+
+/*---------------------------------------------------------------------------*/
+void TabbedMainWindow::updateTabsWithSearchResultSlot(QList<QVariantMap> * list)
+{
+    for (int j =0; list->size() > j; j++)
+    {
+        QVariantMap item = list->at(j);
+        QVariantMap::iterator it ;
+        QString out;
+        for (it = item.begin(); it != item.end(); ++it)
+        {
+            out.append(it.key().toLocal8Bit());
+            out.append(" ");
+            out.append(it.value().toString());
+            out.append(" ");
+        }
+        qDebug()<<out;
+    }
+}

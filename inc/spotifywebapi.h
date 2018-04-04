@@ -48,10 +48,13 @@ private:
     QTimer statusTimer_;
     QNetworkAccessManager networkAccessManager_;
     QMap<QNetworkReply*, SpotifyWebApiRequest> sentRequests_;
+    QList<QVariantMap> * searchResults_ = nullptr;
     void onNetworkReplyReceived_(QNetworkReply *reply);
     void requestServerStatus_();
     void queueRequest_(const SpotifyWebApiRequest &request);
-
+    void parseSearchResultReceived_(QByteArray *replyData);
+signals:
+    void newSearchResultReceivedSig(QList<QVariantMap> *);
 public slots:
     void storeToken(QString token);
     void playSlot();

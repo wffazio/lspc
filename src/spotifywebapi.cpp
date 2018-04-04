@@ -1,5 +1,6 @@
 #include "inc/spotifywebapi.h"
 #include "inc/playercontrols.h"
+#include "inc/mydb.hpp"
 
 #include <QWidget>
 #include <QDebug>
@@ -54,31 +55,7 @@ void SpotifyWebApi::onNetworkReplyReceived_(QNetworkReply *reply)
                 case SpotifyWebApiRequestType::spotifyWebApiRequestTypePlay:
                 case SpotifyWebApiRequestType::spotifyWebApiRequestTypeServerStatus:
                 default:
-                QJsonParseError jsonParseError;
-                QJsonDocument jsonResponse = QJsonDocument::fromJson(static_cast<QString>(replyData).toUtf8(), &jsonParseError);
-
-                if (jsonParseError.error != QJsonParseError::NoError)
-                    return ;
-
-                if (!jsonResponse.isObject()) return ;
-                auto data = jsonResponse.toVariant().toMap();
-                auto itemMap = data.value("tracks").toMap().value("items");
-
-                if(itemMap.isNull()) return ;
-                QList<QVariant> items = itemMap.toList();
-
-                if(items.isEmpty())  return ;
-
-                for (int i=0;items.count() > i;++i)
-                {
-                    auto item = items[i].toMap();
-                    QString trackname = item.value("name").toString();
-                    QString band = item.value("artists").toList().first().toMap().value("name").toString();
-                    QString album = item.value("album").toMap().value("name").toString();
-                    QString preview = item.value("preview_url").toString();
-                    qDebug().noquote() <<"Faixa" << i << trackname << album << band << preview;
-                }
-
+                    parseSearchResultReceived_(&replyData);
                    // Ignore, we don't care.
                     break;
             }
@@ -167,3 +144,54 @@ void SpotifyWebApi::storeToken(QString token)
 }
 
 
+/*---------------------------------------------------------------------------*/
+void SpotifyWebApi::parseSearchResultReceived_(QByteArray *replyData)
+{
+    QJsonParseError jsonParseError;
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(static_cast<QString>(*replyData).toUtf8(), &jsonParseError);
+
+    if (jsonParseError.error != QJsonParseError::NoError)
+        return ;
+
+    if (!jsonResponse.isObject()) return ;
+    auto data = jsonResponse.toVariant().toMap();
+    auto itemMap = data.value("tracks").toMap().value("items");
+
+    if(itemMap.isNull()) return ;
+    QList<QVariant> items = itemMap.toList();
+
+    if(items.isEmpty())  return ;
+
+    if (nullptr!=searchResults_)
+    {
+        searchResults_->clear();
+    }
+    else
+    {
+        searchResults_ = new QList<QVariantMap>();
+    }
+
+
+    for (int i=0;items.count() > i;++i)
+    {
+        auto item = items[i].toMap();
+        QString trackname = item.value("name").toString();
+        QString band = item.value("artists").toList().first().toMap().value("name").toString();
+        QString album = item.value("album").toMap().value("name").toString();
+        QString preview = item.value("preview_url").toString();
+        qDebug().noquote() <<"Faixa" << i << trackname << album << band << preview;
+        QVariantMap trackMap {
+                              {TrackTableEntryKeyMap[DbKeysIndex::TITLE],trackname},
+                              {TrackTableEntryKeyMap[DbKeysIndex::ALBUM],album},
+                              {TrackTableEntryKeyMap[DbKeysIndex::ARTIST],band},
+                              {TrackTableEntryKeyMap[DbKeysIndex::URL],preview},
+                             };
+
+        searchResults_->insert(i,trackMap);
+
+        //MyDb db;
+        //db.addTrack(trackMap);
+    }
+
+    emit newSearchResultReceivedSig(searchResults_);
+}

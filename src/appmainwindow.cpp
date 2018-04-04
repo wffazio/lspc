@@ -3,6 +3,7 @@
 #include "inc/tabbedwindow.h"
 #include "inc/appmainwindow.h"
 #include "inc/spotifywebapi.h"
+#include "inc/mydb.hpp"
 
 /*---------------------------------------------------------------------------*/
 AppMainWindow::AppMainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
@@ -12,14 +13,20 @@ AppMainWindow::AppMainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
 
     currentAuthentication_ = new SpotifyAppAuthentication();
     currentAuthentication_->authenticate();
-
-    tabsInstance_ = new TabbedMainWindow(cdb,parent);
+    this->cdb_=&cdb;
+    tabsInstance_ = new TabbedMainWindow(this->cdb_,parent);
     this->spotifyApis_ = new SpotifyWebApi();
+
 
     connect(tabsInstance_->player, &PlayerControls::playSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
     connect(tabsInstance_->player, &PlayerControls::pauseSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
     connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,
-                    tabsInstance_, TabbedMainWindow::updateTabsWithUserDataSlot);
+                    tabsInstance_, &TabbedMainWindow::updateTabsWithUserDataSlot);
+    connect(this->spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,tabsInstance_,
+            &TabbedMainWindow::updateTabsWithSearchResultSlot);
+    connect(cdb_, &MyDb::tracksInsertedSig,tabsInstance_,
+            &TabbedMainWindow::updateTabsWithPlaylistSlot);
+
 
     mainLayout->addWidget(tabsInstance_);
     mainWidget->setLayout(mainLayout);

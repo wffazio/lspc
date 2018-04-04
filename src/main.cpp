@@ -10,11 +10,12 @@ int main(int argc, char *argv[])
 {
     MyDb playlistDb;
     QApplication app(argc, argv);
-    if (!playlistDb.connect())
+    if (!playlistDb.openTracksTable())
     {
         qDebug() << "Db NOT connected";
         return EXIT_FAILURE;
     }
+
     qDebug() << "Db connected";
     AppMainWindow w(playlistDb);
     w.show();
