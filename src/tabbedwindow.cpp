@@ -1,6 +1,7 @@
 #include "inc/tabbedwindow.h"
 #include "inc/playercontrols.h"
 #include "inc/appmainwindow.h"
+#include <QHeaderView>
 
 
 /*---------------------------------------------------------------------------*/
@@ -8,7 +9,7 @@ QSqlTableModel *
 TabbedMainWindow::createTableModelForPlaylist_(MyDb &cdb)
 {
     QSqlTableModel * tableModelLocal = new QSqlTableModel;
-    tableModelLocal->setTable(cdb.activeTable);
+    tableModelLocal->setTable(cdb.tracksTable);
     tableModelLocal->setEditStrategy(QSqlTableModel::OnManualSubmit);
     tableModelLocal->select();
     return tableModelLocal;
@@ -24,7 +25,6 @@ TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 
     tableModel_ = createTableModelForPlaylist_(cdb);
     player = new PlayerControls();
-
     this->addTab(createPlaylistTab_(player,tableModel_),tr("Player"));
     QVBoxLayout *accountBoxLayout = new QVBoxLayout;
 
@@ -73,11 +73,19 @@ TabbedMainWindow::createPlaylistView_(QSqlTableModel*table)
     trackViewWdgLocal->setSortingEnabled(true);
     trackViewWdgLocal->setSelectionBehavior(QAbstractItemView::SelectRows);
     trackViewWdgLocal->setSelectionMode(QAbstractItemView::SingleSelection);
-    trackViewWdgLocal->setShowGrid(false);
+    trackViewWdgLocal->setShowGrid(true);
+    trackViewWdgLocal->setGridStyle(Qt::NoPen);
     trackViewWdgLocal->verticalHeader()->hide();
     trackViewWdgLocal->setAlternatingRowColors(true);
     trackViewWdgLocal->setColumnHidden(0,true);
-    trackViewWdgLocal->horizontalHeader()->hide();
+    trackViewWdgLocal->setColumnHidden(4,true);
+    //trackViewWdgLocal->setColumnWidth(1,150);
+    trackViewWdgLocal->setWordWrap(false);
+    QHeaderView * header = trackViewWdgLocal->horizontalHeader();
+    header->setSectionResizeMode(QHeaderView::ResizeToContents);
+    trackViewWdgLocal->setHorizontalHeader(header);
+
+    //trackViewWdgLocal->horizontalHeader()->hide();
     QLocale locale = trackViewWdgLocal->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     trackViewWdgLocal->setLocale(locale);
