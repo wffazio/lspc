@@ -13,7 +13,7 @@ class TabbedMainWindow : public QTabWidget
 {
     Q_OBJECT
 public:
-    TabbedMainWindow(MyDb *cdb, QWidget *parent = 0);
+    TabbedMainWindow(MyDb &cdb, QWidget *parent = 0);
     PlayerControls * player;
 
 
@@ -26,11 +26,11 @@ private:
     QLabel * activeUserWdg_ = nullptr;
     QTableView *trackViewWdg_;
     QTableView * createPlaylistView_ (QSqlTableModel*);
-    QSqlTableModel * createTableModelForPlaylist_(MyDb *cdb);
+    QSqlTableModel * createTableModelForPlaylist_(MyDb &cdb, QWidget *parent);
     QWidget * createPlaylistTab_(PlayerControls *player, QSqlTableModel*model);
     QGroupBox * createPlaylistViewBox_(QSqlTableModel*);
     QGroupBox * createPlayerControlsBox_();
-    QWidget * createSearchTab_(QString tablename);
+    QWidget * createSearchTab_(MyDb &cdb, QWidget *parent);
 
 public slots:
     void updateTabsWithUserDataSlot(QString userId, QString userName);

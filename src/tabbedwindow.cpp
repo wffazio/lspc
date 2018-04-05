@@ -9,11 +9,11 @@
 
 
 /*---------------------------------------------------------------------------*/
-TabbedMainWindow::TabbedMainWindow(MyDb *cdb, QWidget *parent)
+TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 {    
     QWidget *accountTabWdg = new QWidget(parent);
 
-    playlistTableModel_ = createTableModelForPlaylist_(cdb);
+    playlistTableModel_ = createTableModelForPlaylist_(cdb,parent);
     player = new PlayerControls();
     this->addTab(createPlaylistTab_(player,playlistTableModel_),tr("Player"));
     QVBoxLayout *accountBoxLayout = new QVBoxLayout;
@@ -22,7 +22,7 @@ TabbedMainWindow::TabbedMainWindow(MyDb *cdb, QWidget *parent)
     accountBoxLayout->addWidget(activeUserWdg_,1,Qt::AlignTop);
 
     accountTabWdg->setLayout(accountBoxLayout);
-    this->addTab(createSearchTab_(cdb->searchResultsTableName()),tr("Search"));
+    this->addTab(createSearchTab_(cdb,parent),tr("Search"));
     this->addTab(accountTabWdg,tr("Account"));
     connect(this,QTabWidget::currentChanged,this,TabbedMainWindow::currentTabChangedSlot_);
 
@@ -36,11 +36,11 @@ TabbedMainWindow::TabbedMainWindow(MyDb *cdb, QWidget *parent)
 
 /*---------------------------------------------------------------------------*/
 QSqlTableModel *
-TabbedMainWindow::createTableModelForPlaylist_(MyDb *cdb)
+TabbedMainWindow::createTableModelForPlaylist_(MyDb &cdb,QWidget *parent)
 {
-    QSqlTableModel * tableModelLocal = new QSqlTableModel;
+    QSqlTableModel * tableModelLocal = new QSqlTableModel(parent,cdb.playListDb());
 
-    tableModelLocal->setTable(cdb->tracksTableName());
+    tableModelLocal->setTable(cdb.tracksTableName());
     tableModelLocal->setEditStrategy(QSqlTableModel::OnManualSubmit);
     tableModelLocal->select();
     tableModelLocal->setHeaderData(0, Qt::Horizontal, tr("ID"));
@@ -125,7 +125,7 @@ TabbedMainWindow::createPlaylistTab_(PlayerControls *player,
 
 /*---------------------------------------------------------------------------*/
 QWidget *
-TabbedMainWindow::createSearchTab_(QString tablename)
+TabbedMainWindow::createSearchTab_(MyDb & cdb,QWidget *parent)
 {
     QWidget * searchTabWdg=new QWidget;
     QVBoxLayout *tabLayout = new QVBoxLayout;
@@ -153,8 +153,8 @@ TabbedMainWindow::createSearchTab_(QString tablename)
 
     searchBox->setLayout(filtersContentLayout);
 
-    searchResultsTableModel_ = new QSqlTableModel;
-    searchResultsTableModel_->setTable(tablename);
+    searchResultsTableModel_ = new QSqlTableModel(parent,cdb.searchResultDb());
+    searchResultsTableModel_->setTable(cdb.searchResultsTableName());
     searchResultsTableModel_->setEditStrategy(QSqlTableModel::OnManualSubmit);
     searchResultsTableModel_->select();
     searchResultsTableModel_->setHeaderData(0, Qt::Horizontal, tr("ID"));

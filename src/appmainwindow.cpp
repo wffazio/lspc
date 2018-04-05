@@ -14,7 +14,7 @@ AppMainWindow::AppMainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
     currentAuthentication_ = new SpotifyAppAuthentication();
     currentAuthentication_->authenticate();
     this->cdb_=&cdb;
-    tabsInstance_ = new TabbedMainWindow(this->cdb_,parent);
+    tabsInstance_ = new TabbedMainWindow(cdb,parent);
     this->spotifyApis_ = new SpotifyWebApi();
 
 

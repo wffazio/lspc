@@ -40,7 +40,7 @@ class SpotifyWebApi: public QObject
 {
     Q_OBJECT
 public:
-    SpotifyWebApi(QWidget *parent = nullptr);
+    SpotifyWebApi();
     bool SpotifyWebApiSearch(QString what, SpotifyWebApiRequestType type);
 
 private:

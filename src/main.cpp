@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     }
 
     qDebug() << "Db connected";
+    playlistDb.createSearchTable();
     AppMainWindow w(playlistDb);
     w.show();
     //AppWindowManager::TabbedMainWindow tw(playlistDb);

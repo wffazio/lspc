@@ -17,7 +17,8 @@ MyDb::MyDb()
 /*---------------------------------------------------------------------------*/
 bool MyDb::openTracksTable()
 {   
-    this->playListDb_ = QSqlDatabase::addDatabase("QSQLITE","playlist");
+    this->playListDb_= QSqlDatabase::addDatabase("QSQLITE");
+
     this->playListDb_.setDatabaseName(this->playlistDBName_);
     QSqlQuery query(this->playListDb_);
     bool ret = false;
@@ -42,15 +43,15 @@ bool MyDb::openTracksTable()
                        "artist varchar(64), "
                        "preview varchar(256))");
 #ifdef CREATE_DUMMY_DB
-            query.exec("insert into tracks (trackname,album,artist,preview) "
+            query.exec("insert into "+ this->tracksTableName_ +" (trackname,album,artist,preview) "
                        "values('The Mission','Hero','Van Canto','')");
-            query.exec("insert into tracks (trackname,album,artist,preview) "
+            query.exec("insert into "+ this->tracksTableName_ +" (trackname,album,artist,preview) "
                        "values('Lifetime','Hero','Van Canto','')");
-            query.exec("insert into tracks (trackname,album,artist,preview) "
+            query.exec("insert into "+ this->tracksTableName_ +" (trackname,album,artist,preview) "
                        "values('Sad But True','Metallica (Black Album)','Metallica','')");
 #endif
         }
-        this->playListDb_.close();
+        //this->playListDb_.close();
         ret = true;
     }
 
@@ -95,7 +96,7 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
     QString sqlQueryString = "insert into " + this->tracksTableName_ +
             " (" + QString(fields.join(",")) + ") values(" +
             QString(strValues.join(",")) + ")";
-    QSqlQuery query("addQuery",this->playListDb_);
+    QSqlQuery query(this->playListDb_);
     query.prepare(sqlQueryString);
 
     int k = 0;
@@ -106,7 +107,7 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
     {
         emit MyDb::tracksInsertedSig(insertTracks);
     }
-    this->playListDb_.close();
+    //this->playListDb_.close();
     return insertSuccessfully;
 
 }
@@ -115,9 +116,9 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
 /*---------------------------------------------------------------------------*/
 bool MyDb::createSearchTable()
 {
-    this->searchResultDb_ = QSqlDatabase::addDatabase("QSQLITE","searchresults");
+    this->searchResultDb_ = QSqlDatabase::addDatabase("QSQLITE",this->searchResultsDBName_);
     this->searchResultDb_.setDatabaseName(this->searchResultsDBName_);
-    QSqlQuery query(this->playListDb_);
+    QSqlQuery query(this->searchResultDb_);
     bool ret = false;
     if (!this->searchResultDb_.open())
     {
@@ -140,15 +141,15 @@ bool MyDb::createSearchTable()
                        "artist varchar(64), "
                        "preview varchar(256))");
 #ifdef CREATE_DUMMY_DB
-            query.exec("insert into tracks (trackname,album,artist,preview) "
+            query.exec("insert into "+ this->searchResultsTableName_ +" (trackname,album,artist,preview) "
                        "values('The Mission2','Hero','Van Canto','')");
-            query.exec("insert into tracks (trackname,album,artist,preview) "
+            query.exec("insert into "+ this->searchResultsTableName_ +" (trackname,album,artist,preview) "
                        "values('Lifetime2','Hero','Van Canto','')");
-            query.exec("insert into tracks (trackname,album,artist,preview) "
+            query.exec("insert into "+ this->searchResultsTableName_ +" (trackname,album,artist,preview) "
                        "values('Sad But True2','Metallica (Black Album)','Metallica','')");
 #endif
         }
-        this->searchResultDb_.close();
+        //this->searchResultDb_.close();
         ret = true;
     }
 
@@ -188,7 +189,7 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
     QString sqlQueryString = "insert into " + this->searchResultsTableName_ +
             " (" + QString(fields.join(",")) + ") values(" +
             QString(strValues.join(",")) + ")";
-    QSqlQuery query("addResultsQuery",this->searchResultDb_);
+    QSqlQuery query(this->searchResultDb_);
     query.prepare(sqlQueryString);
 
     int k = 0;
@@ -199,12 +200,22 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
     {
         emit MyDb::searchResultsInsertedSig(insertTracks);
     }
-    this->searchResultDb_.close();
+    //this->searchResultDb_.close();
     return insertSuccessfully;
 }
 
 QString MyDb::searchResultsTableName() const
 {
     return searchResultsTableName_;
+}
+
+QSqlDatabase MyDb::searchResultDb() const
+{
+    return searchResultDb_;
+}
+
+QSqlDatabase MyDb::playListDb() const
+{
+    return playListDb_;
 }
 

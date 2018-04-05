@@ -10,7 +10,7 @@
 
 
 /*---------------------------------------------------------------------------*/
-SpotifyWebApi::SpotifyWebApi(QWidget *parent)
+SpotifyWebApi::SpotifyWebApi()
 {
     connect(&networkAccessManager_,
             &QNetworkAccessManager::finished,

@@ -34,6 +34,8 @@ public:
     bool createSearchTable();
     bool addSearchResults(const QVariantMap &insertTracks);
     QString searchResultsTableName() const;
+    QSqlDatabase searchResultDb() const ;
+    QSqlDatabase playListDb()const;
 
 signals:
     void tracksInsertedSig(const QVariantMap & inserted);
