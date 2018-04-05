@@ -114,7 +114,6 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
     {
         emit MyDb::tracksInsertedSig(insertTracks);
     }
-    //this->playListDb_.close();
     return insertSuccessfully;
 
 }
@@ -198,8 +197,6 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
     }
 
     QSqlQuery query(this->searchResultDb_);
-    //query.exec("delete from "+this->searchResultsTableName_);
-    //query.finish();
 
     QStringList strValues;
     QStringList fields = insertTracks.keys();
@@ -247,19 +244,6 @@ void MyDb::newSearchResultReceivedSlot(QList<QVariantMap> * list)
     {
         QVariantMap item = list->at(j);
         MyDb::addSearchResults(item);
-#if 0
-        QVariantMap::iterator it ;
-        QString out;
-        for (it = item.begin(); it != item.end(); ++it)
-        {
-
-            out.append(it.key().toLocal8Bit());
-            out.append(" ");
-            out.append(it.value().toString());
-            out.append(" ");
-        }
-        qDebug()<<out;
-#endif
     }
     emit MyDb::searchResultsInsertedSig(list);
 }

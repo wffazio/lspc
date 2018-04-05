@@ -149,17 +149,7 @@ void SpotifyWebApi::parseSearchResultReceived_(QByteArray *replyData)
     QJsonParseError jsonParseError;
     QJsonDocument jsonResponse = QJsonDocument::fromJson(static_cast<QString>(*replyData).toUtf8(), &jsonParseError);
 
-    if (jsonParseError.error != QJsonParseError::NoError)
-        return ;
-
-    if (!jsonResponse.isObject()) return ;
-    auto data = jsonResponse.toVariant().toMap();
-    auto itemMap = data.value("tracks").toMap().value("items");
-
-    if(itemMap.isNull()) return ;
-    QList<QVariant> items = itemMap.toList();
-
-    if(items.isEmpty())  return ;
+    qDebug() << "JSON: " << *replyData;
 
     if (nullptr!=searchResults_)
     {
@@ -169,7 +159,21 @@ void SpotifyWebApi::parseSearchResultReceived_(QByteArray *replyData)
     {
         searchResults_ = new QList<QVariantMap>();
     }
+    emit newSearchResultReceivedSig(searchResults_);
 
+    if (jsonParseError.error != QJsonParseError::NoError)
+    {
+        return ;
+    }
+
+    if (!jsonResponse.isObject()) return ;
+    auto data = jsonResponse.toVariant().toMap();
+    auto itemMap = data.value("tracks").toMap().value("items");
+
+    if(itemMap.isNull()) return ;
+    QList<QVariant> items = itemMap.toList();
+
+    if(items.isEmpty())  return ;
 
     for (int i=0;items.count() > i;++i)
     {
