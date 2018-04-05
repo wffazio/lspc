@@ -12,12 +12,15 @@
 class TabbedMainWindow : public QTabWidget
 {
     Q_OBJECT
-    public:
+public:
     TabbedMainWindow(MyDb *cdb, QWidget *parent = 0);
     PlayerControls * player;
 
 
 private:    
+    QLineEdit *trackContentToSearch_;
+    QLineEdit *albumContentToSearch_;
+    QLineEdit *artistContentToSearch_;
     QSqlTableModel *playlistTableModel_ = nullptr;
     QSqlTableModel *searchResultsTableModel_ = nullptr;
     QLabel * activeUserWdg_ = nullptr;
@@ -27,14 +30,19 @@ private:
     QWidget * createPlaylistTab_(PlayerControls *player, QSqlTableModel*model);
     QGroupBox * createPlaylistViewBox_(QSqlTableModel*);
     QGroupBox * createPlayerControlsBox_();
+    QWidget * createSearchTab_(QString tablename);
 
 public slots:
     void updateTabsWithUserDataSlot(QString userId, QString userName);
     void updateTabsWithPlaylistSlot(const QVariantMap & track);
     void updateTabsWithSearchResultSlot(QList<QVariantMap> * list);
 
+signals:
+    void startSearchTrackSig(QString*track=nullptr,QString*artist = nullptr,QString*album=nullptr);
+
 private slots:
     void currentTabChangedSlot_(int index);
+    void searchButtonClickedSlot_();
 };
 
 #endif // TABBEDMAINWINDOW_H

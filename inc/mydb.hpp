@@ -31,14 +31,21 @@ public:
     bool openTracksTable();
     QString tracksTableName() const;
     bool addTrack(const QVariantMap &insertTracks);
+    bool createSearchTable();
+    bool addSearchResults(const QVariantMap &insertTracks);
+    QString searchResultsTableName() const;
 
 signals:
     void tracksInsertedSig(const QVariantMap & inserted);
+    void searchResultsInsertedSig(const QVariantMap & inserted);
 
 private:
     const QString tracksTableName_ = "tracks";
     const QString playlistDBName_ = "playlist.db";
+    const QString searchResultsDBName_ = ":memory:";
+    const QString searchResultsTableName_ = "searchresults";
     QSqlDatabase playListDb_;
+    QSqlDatabase searchResultDb_;
 };
 
 #endif // MYDB_HPP
