@@ -272,28 +272,28 @@ void ViewModel::searchButtonClickedSlot_()
 /*---------------------------------------------------------------------------*/
 void ViewModel::addSelectionToPlaylistSlot_(const QModelIndex &index)
 {
-    qDebug() << index.row() <<"is the Row";
-    qDebug() << index.data().toString() <<"is the data";
-    qDebug() << searchResultsTableModel_->data(index).toStringList().join(": ") <<"is the table content";
-    qDebug() << searchResultsTableModel_->index(index.row(),1) << "is column 1";
-    qDebug() << searchResultsTableModel_->itemData(index).values() << "is itemData Values";
-    //searchResultsTableModel_->selectRow(index.row());
-    qDebug() <<
-                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::TRACK_ID).data().toString() <<
-                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::TITLE).data().toString() <<
-                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::ARTIST).data().toString() <<
-                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::ALBUM).data().toString() <<
-                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::URL).data().toString() <<
-                "is full";
-    QString message("Do you want to insert<br><b>"
-                    + searchResultsTableModel_->index(index.row(),
-                                                      (int)DbKeysIndex::ARTIST)
-                                                       .data().toString()
-                    +  "- "
-                    +searchResultsTableModel_->index(index.row(),
-                                                       (int)DbKeysIndex::TITLE)
-                                                       .data().toString()
-                    +"</b><br>into your playlist?");
+    QString track = searchResultsTableModel_->index(index.row(),
+                                                        (int)DbKeysIndex::TITLE)
+                                                        .data().toString();
+    QString album = searchResultsTableModel_->index(index.row(),
+                                                    (int)DbKeysIndex::ALBUM)
+                                                    .data().toString();
+    QString artist = searchResultsTableModel_->index(index.row(),
+                                                     (int)DbKeysIndex::ARTIST)
+                                                      .data().toString();
+    QString preview = searchResultsTableModel_->index(index.row(),
+                                                (int)DbKeysIndex::URL)
+                                                .data().toString();
+    QVariantMap trackMap {
+                          {TrackTableEntryKeyMap_[DbKeysIndex::TITLE],track},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::ALBUM],album},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::ARTIST],artist},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::URL],preview},
+                         };
+
+    QString message("Do you want to insert<br><br><b>"+artist+"- "+track
+                    +"</b><br><br>into your playlist?");
+
     QMessageBox::StandardButton btn = QMessageBox::question(this,
                                               tr("Add to Playlist"),
                                               message,
@@ -302,7 +302,7 @@ void ViewModel::addSelectionToPlaylistSlot_(const QModelIndex &index)
 
     if (QMessageBox::Yes == btn)
     {
-        emit
+        cdb_->addTrack(trackMap);
     }
 
 }

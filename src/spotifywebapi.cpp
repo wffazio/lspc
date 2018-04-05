@@ -191,9 +191,6 @@ void SpotifyWebApi::parseSearchResultReceived_(QByteArray *replyData)
                              };
 
         searchResults_->insert(i,trackMap);
-
-        //MyDb db;
-        //db.addTrack(trackMap);
     }
 
     emit newSearchResultReceivedSig(searchResults_);
