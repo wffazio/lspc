@@ -1,6 +1,6 @@
 #include "inc/spotifywebapi.h"
 #include "inc/playercontrols.h"
-#include "inc/mydb.hpp"
+#include "inc/mydb.h"
 
 #include <QWidget>
 #include <QDebug>
@@ -180,10 +180,10 @@ void SpotifyWebApi::parseSearchResultReceived_(QByteArray *replyData)
         QString preview = item.value("preview_url").toString();
         qDebug().noquote() <<"Faixa" << i << trackname << album << band << preview;
         QVariantMap trackMap {
-                              {TrackTableEntryKeyMap[DbKeysIndex::TITLE],trackname},
-                              {TrackTableEntryKeyMap[DbKeysIndex::ALBUM],album},
-                              {TrackTableEntryKeyMap[DbKeysIndex::ARTIST],band},
-                              {TrackTableEntryKeyMap[DbKeysIndex::URL],preview},
+                              {TrackTableEntryKeyMap_[DbKeysIndex::TITLE],trackname},
+                              {TrackTableEntryKeyMap_[DbKeysIndex::ALBUM],album},
+                              {TrackTableEntryKeyMap_[DbKeysIndex::ARTIST],band},
+                              {TrackTableEntryKeyMap_[DbKeysIndex::URL],preview},
                              };
 
         searchResults_->insert(i,trackMap);

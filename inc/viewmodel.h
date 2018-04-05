@@ -1,23 +1,26 @@
-#ifndef TABBEDMAINWINDOW_H
-#define TABBEDMAINWINDOW_H
+#ifndef VIEWMODEL_H
+#define VIEWMODEL_H
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QSqlTableModel>
-#include "inc/tabbedwindow.h"
-#include "inc/mydb.hpp"
+#include "inc/viewmodel.h"
+#include "inc/mydb.h"
 #include "inc/spotifyappauthentication.h"
 #include "inc/playercontrols.h"
+#include "inc/spotifywebapi.h"
 
 
-class TabbedMainWindow : public QTabWidget
+class ViewModel : public QTabWidget
 {
     Q_OBJECT
 public:
-    TabbedMainWindow(MyDb &cdb, QWidget *parent = 0);
-    PlayerControls * player;
-
+    ViewModel(QWidget *parent = 0);
 
 private:    
+    MyDb * cdb_ = nullptr;
+    SpotifyAppAuthentication *currentAuthentication_;
+    SpotifyWebApi * spotifyApis_;
+    PlayerControls * player_;
     QLineEdit *trackContentToSearch_;
     QLineEdit *albumContentToSearch_;
     QLineEdit *artistContentToSearch_;
@@ -26,11 +29,11 @@ private:
     QLabel * activeUserWdg_ = nullptr;
     QTableView *trackViewWdg_;
     QTableView * createPlaylistView_ (QSqlTableModel*);
-    QSqlTableModel * createTableModelForPlaylist_(MyDb &cdb, QWidget *parent);
-    QWidget * createPlaylistTab_(PlayerControls *player, QSqlTableModel*model);
+    QSqlTableModel * createTableModelForPlaylist_(QWidget *parent);
+    QWidget * createPlaylistTab_( QSqlTableModel*model);
     QGroupBox * createPlaylistViewBox_(QSqlTableModel*);
     QGroupBox * createPlayerControlsBox_();
-    QWidget * createSearchTab_(MyDb &cdb, QWidget *parent);
+    QWidget * createSearchTab_( QWidget *parent);
 
 public slots:
     void updateTabsWithUserDataSlot(QString userId, QString userName);
@@ -43,6 +46,7 @@ signals:
 private slots:
     void currentTabChangedSlot_(int index);
     void searchButtonClickedSlot_();
+    void addSelectionToPlaylistSlot_(const QModelIndex &index);
 };
 
-#endif // TABBEDMAINWINDOW_H
+#endif // VIEWMODEL_H

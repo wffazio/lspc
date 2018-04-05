@@ -3,23 +3,23 @@
 #include <QSqlDatabase>
 #include <QVariantMap>
 
-enum class DbKeysIndex : uint8_t
+enum class DbKeysIndex : int
 {
     TRACK_ID = 0,
     TITLE = 1,
-    ALBUM = 2,
-    ARTIST = 3,
+    ARTIST = 2,
+    ALBUM =3,
     URL = 4
 };
 
 typedef QMap<DbKeysIndex, QString> TrackTableEntry;
 
-static const TrackTableEntry TrackTableEntryKeyMap =
+static const TrackTableEntry TrackTableEntryKeyMap_ =
 {
     {DbKeysIndex::TRACK_ID, "trackid"},
     {DbKeysIndex::TITLE, "trackname"},
-    {DbKeysIndex::ALBUM, "album"},
     {DbKeysIndex::ARTIST, "artist"},
+    {DbKeysIndex::ALBUM, "album"},    
     {DbKeysIndex::URL, "preview"},
 };
 

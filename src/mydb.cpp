@@ -3,7 +3,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QDebug>
-#include "inc/mydb.hpp"
+#include "inc/mydb.h"
 
 #define CREATE_DUMMY_DB
 
@@ -35,13 +35,21 @@ bool MyDb::openTracksTable()
         if (!this->playListDb_.tables().contains(this->tracksTableName_))
         {
             qDebug() << "First playlist DB creation";
+            QString createString= QString(
+                                "create table %1 "
+                                "(%2 integer PRIMARY KEY AUTOINCREMENT, "
+                                "%3 varchar(64), "
+                                "%4 varchar(64), "
+                                "%5 varchar(64), "
+                                "%6 varchar(256))")
+                                .arg(this->tracksTableName_)
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::TRACK_ID])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::TITLE])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::ARTIST])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::ALBUM])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::URL]);
 
-            query.exec("create table " + this->tracksTableName_ +
-                       "(trackid integer PRIMARY KEY AUTOINCREMENT, "
-                       "trackname varchar(64), "
-                       "album varchar(64), "
-                       "artist varchar(64), "
-                       "preview varchar(256))");
+            query.exec(createString);
 #ifdef CREATE_DUMMY_DB
             query.exec("insert into "+ this->tracksTableName_ +" (trackname,album,artist,preview) "
                        "values('The Mission','Hero','Van Canto','')");
@@ -115,15 +123,19 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
 /*---------------------------------------------------------------------------*/
 bool MyDb::createSearchTable()
 {
-    this->searchResultDb_ = QSqlDatabase::addDatabase("QSQLITE",this->searchResultsDBName_);
+    this->searchResultDb_ = QSqlDatabase::addDatabase(
+                                              "QSQLITE",
+                                              this->searchResultsDBName_);
     this->searchResultDb_.setDatabaseName(this->searchResultsDBName_);
     QSqlQuery query(this->searchResultDb_);
     bool ret = false;
     if (!this->searchResultDb_.open())
     {
         QMessageBox::critical(nullptr,
-                              QObject::tr("Não foi possível abrir ")+this->searchResultsTableName_,
-                              QObject::tr("Isto pode ter sido causado por falta do SQLite.\n\n"
+                              QObject::tr("Não foi possível abrir ")+
+                                          this->searchResultsTableName_,
+                              QObject::tr("Isto pode ter sido causado"
+                                          "por falta do SQLite.\n\n"
                                           "Click Cancel to exit."),
                               QMessageBox::Cancel);
     }
@@ -132,13 +144,21 @@ bool MyDb::createSearchTable()
         if (!this->searchResultDb_.tables().contains(this->searchResultsTableName_))
         {
             qDebug() << "First search DB creation";
+            QString createString= QString(
+                                "create table %1 "
+                                "(%2 integer PRIMARY KEY AUTOINCREMENT, "
+                                "%3 varchar(64), "
+                                "%4 varchar(64), "
+                                "%5 varchar(64), "
+                                "%6 varchar(256))")
+                                .arg(this->searchResultsTableName_)
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::TRACK_ID])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::TITLE])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::ARTIST])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::ALBUM])
+                                .arg(TrackTableEntryKeyMap_[DbKeysIndex::URL]);
 
-            query.exec("create table " + this->searchResultsTableName_ +
-                       " (trackid integer PRIMARY KEY AUTOINCREMENT, "
-                       "trackname varchar(64), "
-                       "album varchar(64), "
-                       "artist varchar(64), "
-                       "preview varchar(256))");
+            query.exec(createString);
 #ifdef CREATE_DUMMY_DB
             query.exec("insert into "+ this->searchResultsTableName_ +" (trackname,album,artist,preview) "
                        "values('The Mission2','Hero','Van Canto','')");

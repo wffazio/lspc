@@ -1,6 +1,6 @@
-#include "inc/tabbedwindow.h"
+#include "inc/viewmodel.h"
 #include "inc/playercontrols.h"
-#include "inc/appmainwindow.h"
+#include "inc/view.h"
 #include <QHeaderView>
 #include <QPushButton>
 
@@ -9,22 +9,43 @@
 
 
 /*---------------------------------------------------------------------------*/
-TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
+ViewModel::ViewModel(QWidget *parent)
 {    
     QWidget *accountTabWdg = new QWidget(parent);
+    this->cdb_ = new MyDb;
+    if (!cdb_->openTracksTable() || !cdb_->createSearchTable())
+    {
+        qDebug() << "Db NOT connected";
+        return;// EXIT_FAILURE;
+    }
 
-    playlistTableModel_ = createTableModelForPlaylist_(cdb,parent);
-    player = new PlayerControls();
-    this->addTab(createPlaylistTab_(player,playlistTableModel_),tr("Player"));
+    qDebug() << "Db connected";
+    currentAuthentication_ = new SpotifyAppAuthentication();
+    currentAuthentication_->authenticate();
+
+    this->spotifyApis_ = new SpotifyWebApi();
+
+    playlistTableModel_ = createTableModelForPlaylist_(parent);
+    player_ = new PlayerControls();
+    this->addTab(createPlaylistTab_(playlistTableModel_),tr("Player"));
     QVBoxLayout *accountBoxLayout = new QVBoxLayout;
 
     activeUserWdg_ = new QLabel("Logged As: ");
     accountBoxLayout->addWidget(activeUserWdg_,1,Qt::AlignTop);
 
     accountTabWdg->setLayout(accountBoxLayout);
-    this->addTab(createSearchTab_(cdb,parent),tr("Search"));
+    this->addTab(createSearchTab_(parent),tr("Search"));
     this->addTab(accountTabWdg,tr("Account"));
-    connect(this,QTabWidget::currentChanged,this,TabbedMainWindow::currentTabChangedSlot_);
+    connect(this,QTabWidget::currentChanged,this,ViewModel::currentTabChangedSlot_);    
+    connect(player_, &PlayerControls::playSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
+    connect(player_, &PlayerControls::pauseSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
+    connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,this, &ViewModel::updateTabsWithUserDataSlot);
+    connect(spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,this->cdb_,&MyDb::newSearchResultReceivedSlot);
+    connect(cdb_, &MyDb::searchResultsInsertedSig,this,&ViewModel::updateTabsWithSearchResultSlot);
+    connect(cdb_, &MyDb::tracksInsertedSig,this,&ViewModel::updateTabsWithPlaylistSlot);
+    connect(this,&ViewModel::startSearchTrackSig,this->spotifyApis_,&SpotifyWebApi::processSearchRequest);
+    connect(currentAuthentication_, &SpotifyAppAuthentication::spotifyTokenReceivedSig,
+            spotifyApis_, &SpotifyWebApi::storeToken);
 
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addWidget(tabWidget);
@@ -36,18 +57,18 @@ TabbedMainWindow::TabbedMainWindow(MyDb &cdb, QWidget *parent)
 
 /*---------------------------------------------------------------------------*/
 QSqlTableModel *
-TabbedMainWindow::createTableModelForPlaylist_(MyDb &cdb,QWidget *parent)
+ViewModel::createTableModelForPlaylist_(QWidget *parent)
 {
-    QSqlTableModel * tableModelLocal = new QSqlTableModel(parent,cdb.playListDb());
+    QSqlTableModel * tableModelLocal = new QSqlTableModel(parent,cdb_->playListDb());
 
-    tableModelLocal->setTable(cdb.tracksTableName());
+    tableModelLocal->setTable(cdb_->tracksTableName());
     tableModelLocal->setEditStrategy(QSqlTableModel::OnManualSubmit);
     tableModelLocal->select();
-    tableModelLocal->setHeaderData(0, Qt::Horizontal, tr("ID"));
-    tableModelLocal->setHeaderData(1, Qt::Horizontal, tr("Música"));
-    tableModelLocal->setHeaderData(2, Qt::Horizontal, tr("Álbum"));
-    tableModelLocal->setHeaderData(3, Qt::Horizontal, tr("Artista"));
-    tableModelLocal->setHeaderData(4, Qt::Horizontal, tr("Preview URL"));
+    tableModelLocal->setHeaderData((int)DbKeysIndex::TRACK_ID, Qt::Horizontal, tr("ID"));
+    tableModelLocal->setHeaderData((int)DbKeysIndex::TITLE, Qt::Horizontal, tr("Música"));
+    tableModelLocal->setHeaderData((int)DbKeysIndex::ALBUM, Qt::Horizontal, tr("Álbum"));
+    tableModelLocal->setHeaderData((int)DbKeysIndex::ARTIST, Qt::Horizontal, tr("Artista"));
+    tableModelLocal->setHeaderData((int)DbKeysIndex::URL, Qt::Horizontal, tr("Preview URL"));
     return tableModelLocal;
 }
 
@@ -55,7 +76,7 @@ TabbedMainWindow::createTableModelForPlaylist_(MyDb &cdb,QWidget *parent)
 
 /*---------------------------------------------------------------------------*/
 QTableView *
-TabbedMainWindow::createPlaylistView_(QSqlTableModel*table)
+ViewModel::createPlaylistView_(QSqlTableModel*table)
 {
     QTableView *trackViewWdgLocal = new QTableView;
     trackViewWdgLocal->setModel(table);
@@ -67,25 +88,29 @@ TabbedMainWindow::createPlaylistView_(QSqlTableModel*table)
     trackViewWdgLocal->setGridStyle(Qt::NoPen);
     trackViewWdgLocal->verticalHeader()->hide();
     trackViewWdgLocal->setAlternatingRowColors(true);
-    trackViewWdgLocal->setColumnHidden(0,true);
-    trackViewWdgLocal->setColumnHidden(4,true);
+    trackViewWdgLocal->setColumnHidden((int)DbKeysIndex::TRACK_ID,true);
+    trackViewWdgLocal->setColumnHidden((int)DbKeysIndex::URL,true);
+    trackViewWdgLocal->sortByColumn((int)DbKeysIndex::TRACK_ID,Qt::AscendingOrder);
     //trackViewWdgLocal->setColumnWidth(1,150);
     trackViewWdgLocal->setWordWrap(false);
     QHeaderView * header = trackViewWdgLocal->horizontalHeader();
     header->setSectionResizeMode(QHeaderView::ResizeToContents);
+    header->setSortIndicatorShown(true);
     trackViewWdgLocal->setHorizontalHeader(header);
 
     //trackViewWdgLocal->horizontalHeader()->hide();
     QLocale locale = trackViewWdgLocal->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     trackViewWdgLocal->setLocale(locale);
+
+
     return trackViewWdgLocal;
 }
 
 
 /*---------------------------------------------------------------------------*/
 QGroupBox *
-TabbedMainWindow::createPlaylistViewBox_(QSqlTableModel*table)
+ViewModel::createPlaylistViewBox_(QSqlTableModel*table)
 {
     static QLineEdit *filterWdg_;
     QVBoxLayout *tracklistBoxLayout = new QVBoxLayout;
@@ -104,14 +129,13 @@ TabbedMainWindow::createPlaylistViewBox_(QSqlTableModel*table)
 
 /*---------------------------------------------------------------------------*/
 QWidget *
-TabbedMainWindow::createPlaylistTab_(PlayerControls *player,
-                                     QSqlTableModel*table)
+ViewModel::createPlaylistTab_(QSqlTableModel*table)
 {
     QWidget *localPlaylistTab = new QWidget;
     QGridLayout *gridLayout = new QGridLayout;
 
     gridLayout->addWidget(createPlaylistViewBox_(table),0,0);
-    gridLayout->addWidget(player,1,0);
+    gridLayout->addWidget(player_,1,0);
     gridLayout->setColumnStretch(1, 1);
     gridLayout->setColumnStretch(0, 1);
     /*second column is empty yet*/
@@ -125,7 +149,7 @@ TabbedMainWindow::createPlaylistTab_(PlayerControls *player,
 
 /*---------------------------------------------------------------------------*/
 QWidget *
-TabbedMainWindow::createSearchTab_(MyDb & cdb,QWidget *parent)
+ViewModel::createSearchTab_(QWidget *parent)
 {
     QWidget * searchTabWdg=new QWidget;
     QVBoxLayout *tabLayout = new QVBoxLayout;
@@ -144,7 +168,7 @@ TabbedMainWindow::createSearchTab_(MyDb & cdb,QWidget *parent)
     artistContentToSearch_->setPlaceholderText(QObject::tr("(artist name)"));
 
     searchButton->setText(tr("Search..."));
-    connect(searchButton, QPushButton::clicked,this,TabbedMainWindow::searchButtonClickedSlot_);
+    connect(searchButton, QPushButton::clicked,this,ViewModel::searchButtonClickedSlot_);
 
     filtersContentLayout->addWidget(trackContentToSearch_, 0, 0);
     filtersContentLayout->addWidget(albumContentToSearch_, 0, 0);
@@ -153,15 +177,15 @@ TabbedMainWindow::createSearchTab_(MyDb & cdb,QWidget *parent)
 
     searchBox->setLayout(filtersContentLayout);
 
-    searchResultsTableModel_ = new QSqlTableModel(parent,cdb.searchResultDb());
-    searchResultsTableModel_->setTable(cdb.searchResultsTableName());
+    searchResultsTableModel_ = new QSqlTableModel(parent,cdb_->searchResultDb());
+    searchResultsTableModel_->setTable(cdb_->searchResultsTableName());
     searchResultsTableModel_->setEditStrategy(QSqlTableModel::OnManualSubmit);
     searchResultsTableModel_->select();
-    searchResultsTableModel_->setHeaderData(0, Qt::Horizontal, tr("ID"));
-    searchResultsTableModel_->setHeaderData(1, Qt::Horizontal, tr("Música"));
-    searchResultsTableModel_->setHeaderData(2, Qt::Horizontal, tr("Álbum"));
-    searchResultsTableModel_->setHeaderData(3, Qt::Horizontal, tr("Artista"));
-    searchResultsTableModel_->setHeaderData(4, Qt::Horizontal, tr("Preview URL"));
+    searchResultsTableModel_->setHeaderData((int)DbKeysIndex::TRACK_ID, Qt::Horizontal, tr("ID"));
+    searchResultsTableModel_->setHeaderData((int)DbKeysIndex::TITLE, Qt::Horizontal, tr("Música"));
+    searchResultsTableModel_->setHeaderData((int)DbKeysIndex::ALBUM, Qt::Horizontal, tr("Álbum"));
+    searchResultsTableModel_->setHeaderData((int)DbKeysIndex::ARTIST, Qt::Horizontal, tr("Artista"));
+    searchResultsTableModel_->setHeaderData((int)DbKeysIndex::URL, Qt::Horizontal, tr("Preview URL"));
 
     searchResultsWdg->setModel(searchResultsTableModel_);
     searchResultsWdg->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -172,18 +196,21 @@ TabbedMainWindow::createSearchTab_(MyDb & cdb,QWidget *parent)
     searchResultsWdg->setGridStyle(Qt::NoPen);
     searchResultsWdg->verticalHeader()->hide();
     searchResultsWdg->setAlternatingRowColors(true);
-    searchResultsWdg->setColumnHidden(0,true);
-    searchResultsWdg->setColumnHidden(4,true);
+    searchResultsWdg->setColumnHidden((int)DbKeysIndex::TRACK_ID,true);
+    searchResultsWdg->setColumnHidden((int)DbKeysIndex::URL,true);
+    searchResultsWdg->sortByColumn((int)DbKeysIndex::TRACK_ID,Qt::AscendingOrder);
     //trackViewWdgLocal->setColumnWidth(1,150);
     searchResultsWdg->setWordWrap(false);
     QHeaderView * header = searchResultsWdg->horizontalHeader();
     header->setSectionResizeMode(QHeaderView::ResizeToContents);
+    header->setSortIndicatorShown(true);
     searchResultsWdg->setHorizontalHeader(header);
 
     //trackViewWdgLocal->horizontalHeader()->hide();
     QLocale locale = searchResultsWdg->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     searchResultsWdg->setLocale(locale);
+    connect(searchResultsWdg, QTableView::doubleClicked,this,ViewModel::addSelectionToPlaylistSlot_);
 
     resultsBoxLayout->addWidget(searchResultsWdg);
     resultBox->setLayout(resultsBoxLayout);
@@ -200,7 +227,7 @@ TabbedMainWindow::createSearchTab_(MyDb & cdb,QWidget *parent)
 
 /*---------------------------------------------------------------------------*/
 void
-TabbedMainWindow::currentTabChangedSlot_(int index)
+ViewModel::currentTabChangedSlot_(int index)
 {
     qDebug() << "Tab has changed:" << index;
     this->currentWidget()->repaint();
@@ -208,14 +235,14 @@ TabbedMainWindow::currentTabChangedSlot_(int index)
 
 
 /*---------------------------------------------------------------------------*/
-void TabbedMainWindow::updateTabsWithUserDataSlot(QString userId, QString userName)
+void ViewModel::updateTabsWithUserDataSlot(QString userId, QString userName)
 {
     activeUserWdg_->setText("Logged as: " +userName +"\n" + userId);
 }
 
 
 /*---------------------------------------------------------------------------*/
-void TabbedMainWindow::updateTabsWithPlaylistSlot(const QVariantMap & track)
+void ViewModel::updateTabsWithPlaylistSlot(const QVariantMap & track)
 {
     (void)track;
     playlistTableModel_->select();
@@ -223,7 +250,7 @@ void TabbedMainWindow::updateTabsWithPlaylistSlot(const QVariantMap & track)
 
 
 /*---------------------------------------------------------------------------*/
-void TabbedMainWindow::updateTabsWithSearchResultSlot(QList<QVariantMap> * list)
+void ViewModel::updateTabsWithSearchResultSlot(QList<QVariantMap> * list)
 {
     (void)list;
     searchResultsTableModel_->select();
@@ -231,11 +258,51 @@ void TabbedMainWindow::updateTabsWithSearchResultSlot(QList<QVariantMap> * list)
 
 
 /*---------------------------------------------------------------------------*/
-void TabbedMainWindow::searchButtonClickedSlot_()
+void ViewModel::searchButtonClickedSlot_()
 {
     QString track(trackContentToSearch_->text());
     QString artist(artistContentToSearch_->text());
     QString album(albumContentToSearch_->text());
     //SpotifyWebApiSearch("Sepultura",SpotifyWebApiRequestType::spotifyWebApiRequestTypeTrackSearch);
     emit startSearchTrackSig(track,artist,album);
+}
+
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::addSelectionToPlaylistSlot_(const QModelIndex &index)
+{
+    qDebug() << index.row() <<"is the Row";
+    qDebug() << index.data().toString() <<"is the data";
+    qDebug() << searchResultsTableModel_->data(index).toStringList().join(": ") <<"is the table content";
+    qDebug() << searchResultsTableModel_->index(index.row(),1) << "is column 1";
+    qDebug() << searchResultsTableModel_->itemData(index).values() << "is itemData Values";
+    //searchResultsTableModel_->selectRow(index.row());
+    qDebug() <<
+                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::TRACK_ID).data().toString() <<
+                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::TITLE).data().toString() <<
+                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::ARTIST).data().toString() <<
+                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::ALBUM).data().toString() <<
+                searchResultsTableModel_->index(index.row(),(int)DbKeysIndex::URL).data().toString() <<
+                "is full";
+    QString message("Do you want to insert<br><b>"
+                    + searchResultsTableModel_->index(index.row(),
+                                                      (int)DbKeysIndex::ARTIST)
+                                                       .data().toString()
+                    +  "- "
+                    +searchResultsTableModel_->index(index.row(),
+                                                       (int)DbKeysIndex::TITLE)
+                                                       .data().toString()
+                    +"</b><br>into your playlist?");
+    QMessageBox::StandardButton btn = QMessageBox::question(this,
+                                              tr("Add to Playlist"),
+                                              message,
+                                              QMessageBox::Yes|QMessageBox::No,
+                                              QMessageBox::Yes);
+
+    if (QMessageBox::Yes == btn)
+    {
+        emit
+    }
+
 }
