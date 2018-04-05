@@ -36,10 +36,11 @@ public:
     QString searchResultsTableName() const;
     QSqlDatabase searchResultDb() const ;
     QSqlDatabase playListDb()const;
-
+public slots:
+    void newSearchResultReceivedSlot(QList<QVariantMap> * list);
 signals:
     void tracksInsertedSig(const QVariantMap & inserted);
-    void searchResultsInsertedSig(const QVariantMap & inserted);
+    void searchResultsInsertedSig(QList<QVariantMap> * list);
 
 private:
     const QString tracksTableName_ = "tracks";

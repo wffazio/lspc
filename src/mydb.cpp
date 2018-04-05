@@ -51,7 +51,6 @@ bool MyDb::openTracksTable()
                        "values('Sad But True','Metallica (Black Album)','Metallica','')");
 #endif
         }
-        //this->playListDb_.close();
         ret = true;
     }
 
@@ -76,7 +75,7 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
                                  "The insertTracks is empty!");
         return false;
     }
-    if (!this->playListDb_.open())
+    if (!this->playListDb_.isOpen())
     {
         QMessageBox::critical(nullptr,
                               QObject::tr("Não foi possível abrir ")+this->tracksTableName_,
@@ -149,7 +148,6 @@ bool MyDb::createSearchTable()
                        "values('Sad But True2','Metallica (Black Album)','Metallica','')");
 #endif
         }
-        //this->searchResultDb_.close();
         ret = true;
     }
 
@@ -169,7 +167,7 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
                                  "The insertTracks is empty!");
         return false;
     }
-    if (!this->searchResultDb_.open())
+    if (!this->searchResultDb_.isOpen())
     {
         QMessageBox::critical(nullptr,
                               QObject::tr("Não foi possível abrir") +this->searchResultsTableName_,
@@ -178,6 +176,10 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
                               QMessageBox::Cancel);
         return false;
     }
+
+    QSqlQuery query(this->searchResultDb_);
+    //query.exec("delete from "+this->searchResultsTableName_);
+    //query.finish();
 
     QStringList strValues;
     QStringList fields = insertTracks.keys();
@@ -189,18 +191,13 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
     QString sqlQueryString = "insert into " + this->searchResultsTableName_ +
             " (" + QString(fields.join(",")) + ") values(" +
             QString(strValues.join(",")) + ")";
-    QSqlQuery query(this->searchResultDb_);
+
     query.prepare(sqlQueryString);
 
     int k = 0;
     foreach (const QVariant &value, values)
         query.bindValue(k++, value);
     insertSuccessfully =query.exec();
-    if (insertSuccessfully)
-    {
-        emit MyDb::searchResultsInsertedSig(insertTracks);
-    }
-    //this->searchResultDb_.close();
     return insertSuccessfully;
 }
 
@@ -219,3 +216,30 @@ QSqlDatabase MyDb::playListDb() const
     return playListDb_;
 }
 
+
+/*---------------------------------------------------------------------------*/
+void MyDb::newSearchResultReceivedSlot(QList<QVariantMap> * list)
+{
+    QSqlQuery query(this->searchResultDb_);
+    query.exec("delete from "+this->searchResultsTableName_);
+    query.finish();
+    for (int j =0; list->size() > j; j++)
+    {
+        QVariantMap item = list->at(j);
+        MyDb::addSearchResults(item);
+#if 0
+        QVariantMap::iterator it ;
+        QString out;
+        for (it = item.begin(); it != item.end(); ++it)
+        {
+
+            out.append(it.key().toLocal8Bit());
+            out.append(" ");
+            out.append(it.value().toString());
+            out.append(" ");
+        }
+        qDebug()<<out;
+#endif
+    }
+    emit MyDb::searchResultsInsertedSig(list);
+}

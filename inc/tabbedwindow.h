@@ -38,7 +38,7 @@ public slots:
     void updateTabsWithSearchResultSlot(QList<QVariantMap> * list);
 
 signals:
-    void startSearchTrackSig(QString*track=nullptr,QString*artist = nullptr,QString*album=nullptr);
+    void startSearchTrackSig(QString track="",QString artist = "",QString album="");
 
 private slots:
     void currentTabChangedSlot_(int index);

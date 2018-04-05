@@ -20,12 +20,11 @@ AppMainWindow::AppMainWindow(MyDb &cdb, QWidget *parent) : QMainWindow(parent)
 
     connect(tabsInstance_->player, &PlayerControls::playSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
     connect(tabsInstance_->player, &PlayerControls::pauseSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
-    connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,
-                    tabsInstance_, &TabbedMainWindow::updateTabsWithUserDataSlot);
-    connect(this->spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,tabsInstance_,
-            &TabbedMainWindow::updateTabsWithSearchResultSlot);
-    connect(cdb_, &MyDb::tracksInsertedSig,tabsInstance_,
-            &TabbedMainWindow::updateTabsWithPlaylistSlot);
+    connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,tabsInstance_, &TabbedMainWindow::updateTabsWithUserDataSlot);
+    connect(spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,this->cdb_,&MyDb::newSearchResultReceivedSlot);
+    connect(cdb_, &MyDb::searchResultsInsertedSig,tabsInstance_,&TabbedMainWindow::updateTabsWithSearchResultSlot);
+    connect(cdb_, &MyDb::tracksInsertedSig,tabsInstance_,&TabbedMainWindow::updateTabsWithPlaylistSlot);
+    connect(tabsInstance_,&TabbedMainWindow::startSearchTrackSig,this->spotifyApis_,&SpotifyWebApi::processSearchRequest);
 
 
     mainLayout->addWidget(tabsInstance_);

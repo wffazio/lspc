@@ -217,33 +217,25 @@ void TabbedMainWindow::updateTabsWithUserDataSlot(QString userId, QString userNa
 /*---------------------------------------------------------------------------*/
 void TabbedMainWindow::updateTabsWithPlaylistSlot(const QVariantMap & track)
 {
-    qDebug() << track;
-    trackViewWdg_->repaint();
+    (void)track;
+    playlistTableModel_->select();
 }
 
 
 /*---------------------------------------------------------------------------*/
 void TabbedMainWindow::updateTabsWithSearchResultSlot(QList<QVariantMap> * list)
 {
-    for (int j =0; list->size() > j; j++)
-    {
-        QVariantMap item = list->at(j);
-        QVariantMap::iterator it ;
-        QString out;
-        for (it = item.begin(); it != item.end(); ++it)
-        {
-            out.append(it.key().toLocal8Bit());
-            out.append(" ");
-            out.append(it.value().toString());
-            out.append(" ");
-        }
-        qDebug()<<out;
-    }
+    (void)list;
+    searchResultsTableModel_->select();
 }
 
 
 /*---------------------------------------------------------------------------*/
 void TabbedMainWindow::searchButtonClickedSlot_()
 {
-
+    QString track(trackContentToSearch_->text());
+    QString artist(artistContentToSearch_->text());
+    QString album(albumContentToSearch_->text());
+    //SpotifyWebApiSearch("Sepultura",SpotifyWebApiRequestType::spotifyWebApiRequestTypeTrackSearch);
+    emit startSearchTrackSig(track,artist,album);
 }

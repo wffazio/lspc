@@ -29,8 +29,7 @@ SpotifyWebApi::SpotifyWebApi()
 /*---------------------------------------------------------------------------*/
 void SpotifyWebApi::playSlot()
 {
-    qDebug() << "Playing";
-    SpotifyWebApiSearch("Sepultura",SpotifyWebApiRequestType::spotifyWebApiRequestTypeTrackSearch);
+    qDebug() << "Playing";    
 }
 
 
@@ -94,7 +93,7 @@ void SpotifyWebApi::requestServerStatus_()
 
 
 /*---------------------------------------------------------------------------*/
-bool SpotifyWebApi::SpotifyWebApiSearch(QString what,  SpotifyWebApiRequestType type)
+bool SpotifyWebApi::SpotifyWebApiSearch(QString what,SpotifyWebApiRequestType type)
 {
     QString urlString(SPOTIFY_API_BASE_URL SPOTIFY_API_VER SPOTIFY_API_SEARCH);
     urlString.append(what);
@@ -194,4 +193,32 @@ void SpotifyWebApi::parseSearchResultReceived_(QByteArray *replyData)
     }
 
     emit newSearchResultReceivedSig(searchResults_);
+}
+
+/*---------------------------------------------------------------------------*/
+void SpotifyWebApi::processSearchRequest(QString track,QString artist,QString album)
+{
+    QString request;
+    if(!artist.isEmpty())
+    {
+        request.append("artist:"+artist);
+    }
+    if(!album.isEmpty())
+    {
+        if (!request.isEmpty())
+        {
+            request.append("%20");
+        }
+        request.append("album:"+album+ "%20");
+    }
+    if(!track.isEmpty())
+    {
+        if (!request.isEmpty())
+        {
+            request.append("%20");
+        }
+        request.append(track);
+    }
+    request = request.trimmed();
+    SpotifyWebApiSearch(request,SpotifyWebApiRequestType::spotifyWebApiRequestTypeTrackSearch);
 }
