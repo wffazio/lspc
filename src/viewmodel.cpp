@@ -59,7 +59,7 @@ ViewModel::ViewModel(QWidget *parent)
     connect(trackViewWdg_, &QTableView::activated,this,&ViewModel::processSelectAndPlayReqSlot_);
     connect(trackViewWdg_, &QTableView::pressed,this,&ViewModel::processSelectSlot_);
     connect(trackViewWdg_, &QTableView::clicked,this,&ViewModel::processSelectSlot_);
-    connect(deleteBtn_,QToolButton::clicked,this,&ViewModel::deleteSelectedTrackSlot_);
+    connect(deleteBtn_,&QToolButton::clicked,this,&ViewModel::deleteSelectedTrackSlot_);
 
 }
 
