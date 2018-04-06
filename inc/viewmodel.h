@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QtWidgets>
 #include <QSqlTableModel>
+#include <QTableView>
 #include "inc/viewmodel.h"
 #include "inc/mydb.h"
 #include "inc/spotifyappauthentication.h"
@@ -28,6 +29,7 @@ private:
     QSqlTableModel *searchResultsTableModel_ = nullptr;
     QLabel * activeUserWdg_ = nullptr;
     QTableView *trackViewWdg_;
+    QToolButton *deleteBtn_;
     QTableView * createPlaylistView_ (QSqlTableModel*);
     QSqlTableModel * createTableModelForPlaylist_(QWidget *parent);
     QWidget * createPlaylistTab_( QSqlTableModel*model);
@@ -50,6 +52,7 @@ private slots:
     void currentTabChangedSlot_(int index);
     void searchButtonClickedSlot_();
     void addSelectionToPlaylistSlot_(const QModelIndex &index);
+    void deleteSelectedTrackSlot_();
 };
 
 #endif // VIEWMODEL_H

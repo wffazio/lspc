@@ -31,6 +31,7 @@ public:
     bool openTracksTable();
     QString tracksTableName() const;
     bool addTrack(const QVariantMap &insertTracks);
+    bool delTrack(const QVariantMap &delTrack);
     bool createSearchTable();
     bool addSearchResults(const QVariantMap &insertTracks);
     QString searchResultsTableName() const;
@@ -39,7 +40,7 @@ public:
 public slots:
     void newSearchResultReceivedSlot(QList<QVariantMap> * list);
 signals:
-    void tracksInsertedSig(const QVariantMap & inserted);
+    void playlistChangedSig(const QVariantMap & inserted);
     void searchResultsInsertedSig(QList<QVariantMap> * list);
 
 private:

@@ -112,7 +112,7 @@ bool MyDb::addTrack(const QVariantMap &insertTracks)
     insertSuccessfully =query.exec();
     if (insertSuccessfully)
     {
-        emit MyDb::tracksInsertedSig(insertTracks);
+        emit MyDb::playlistChangedSig(insertTracks);
     }
     return insertSuccessfully;
 
@@ -250,4 +250,39 @@ void MyDb::newSearchResultReceivedSlot(QList<QVariantMap> * list)
         MyDb::addSearchResults(item);
     }
     emit MyDb::searchResultsInsertedSig(list);
+}
+
+
+/*---------------------------------------------------------------------------*/
+bool MyDb::delTrack(const QVariantMap &delTrack)
+{
+    bool deleted;
+    if (delTrack.isEmpty())
+    {
+        qDebug()<<QStringLiteral("Fatal error on deletion! "
+                                 "The delTrack is empty!");
+        return false;
+    }
+    if (!this->playListDb_.isOpen())
+    {
+        QMessageBox::critical(nullptr,
+                              QObject::tr("Não foi possível abrir ")+this->tracksTableName_,
+                              QObject::tr("Isto pode ter sido causado por falta do SQLite.\n\n"
+                                          "Click Cancel to exit."),
+                              QMessageBox::Cancel);
+        return false;
+    }
+
+    QString sqlQueryString =  QString("delete from %1 where %2=%3")
+                                     .arg(this->tracksTableName_)
+                                        .arg(TrackTableEntryKeyMap_[DbKeysIndex::TRACK_ID])
+                                        .arg(delTrack.value(TrackTableEntryKeyMap_[DbKeysIndex::TRACK_ID]).toString());
+    QSqlQuery query(this->playListDb_);
+    query.prepare(sqlQueryString);
+    deleted =query.exec();
+    if (deleted)
+    {
+        emit MyDb::playlistChangedSig(delTrack);
+    }
+    return deleted;
 }
