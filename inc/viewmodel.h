@@ -34,6 +34,7 @@ private:
     QGroupBox * createPlaylistViewBox_(QSqlTableModel*);
     QGroupBox * createPlayerControlsBox_();
     QWidget * createSearchTab_( QWidget *parent);
+    QVariantMap processSelect_(const QModelIndex &index);
 
 public slots:
     void updateTabsWithUserDataSlot(QString userId, QString userName);
@@ -45,6 +46,7 @@ signals:
 
 private slots:
     void processSelectAndPlayReqSlot_(const QModelIndex &index);
+    void processSelectSlot_(const QModelIndex &index);
     void currentTabChangedSlot_(int index);
     void searchButtonClickedSlot_();
     void addSelectionToPlaylistSlot_(const QModelIndex &index);

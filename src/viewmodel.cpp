@@ -55,6 +55,10 @@ ViewModel::ViewModel(QWidget *parent)
     connect(this,&QTabWidget::currentChanged,this,&ViewModel::currentTabChangedSlot_);
 
     connect(trackViewWdg_, &QTableView::doubleClicked,this,&ViewModel::processSelectAndPlayReqSlot_);
+    connect(trackViewWdg_, &QTableView::activated,this,&ViewModel::processSelectAndPlayReqSlot_);
+    connect(trackViewWdg_, &QTableView::pressed,this,&ViewModel::processSelectSlot_);
+    connect(trackViewWdg_, &QTableView::clicked,this,&ViewModel::processSelectSlot_);
+
 
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addWidget(tabWidget);
@@ -317,8 +321,10 @@ void ViewModel::addSelectionToPlaylistSlot_(const QModelIndex &index)
 }
 
 
-void ViewModel::processSelectAndPlayReqSlot_(const QModelIndex &index)
+/*---------------------------------------------------------------------------*/
+QVariantMap ViewModel::processSelect_(const QModelIndex &index)
 {
+    qDebug() << __func__;
     QString track = playlistTableModel_->index(index.row(),
                                                         (int)DbKeysIndex::TITLE)
                                                         .data().toString();
@@ -341,8 +347,23 @@ void ViewModel::processSelectAndPlayReqSlot_(const QModelIndex &index)
                           {TrackTableEntryKeyMap_[DbKeysIndex::URL],preview},
                           {TrackTableEntryKeyMap_[DbKeysIndex::TRACK_ID],id},
                          };
-    player_->playerStopSlot();
-    player_->setCurrentTrack(trackMap);
-    player_->playerPlaySlot();
+
+    return trackMap;
+}
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::processSelectSlot_(const QModelIndex &index)
+{
     qDebug() << __func__;
+    player_->setCurrentTrack(processSelect_(index));
+}
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::processSelectAndPlayReqSlot_(const QModelIndex &index)
+{    
+    qDebug() << __func__;
+    player_->playerStopSlot();
+    player_->setCurrentTrack(processSelect_(index));
+    player_->playerPlaySlot();
 }

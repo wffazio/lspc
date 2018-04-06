@@ -5,7 +5,7 @@
 #include <QDebug>
 #include "inc/mydb.h"
 
-#define CREATE_DUMMY_DB
+#undef CREATE_DUMMY_DB
 
 /*---------------------------------------------------------------------------*/
 MyDb::MyDb()
