@@ -3,9 +3,10 @@
 #include <QtNetworkAuth>
 #include <QDebug>
 #include "inc/spotifyappauthentication.h"
+#include "inc/spotifywebapi.h"
 
 #define ACCOUNTS_URL "https://accounts.spotify.com/"
-#define API_URL "https://api.spotify.com/v1/"
+#define SPOTIFY_API_URL "https://api.spotify.com/v1/"
 
 
 
@@ -43,7 +44,7 @@ bool SpotifyAppAuthentication::authenticate()
 /*---------------------------------------------------------------------------*/
 void SpotifyAppAuthentication::updateUserData_()
 {
-    QUrl u (API_URL "me");
+    QUrl u (SPOTIFY_API_CALL(SPOTIFY_GET_USERDATA_EP));
     auto reply = spotifyAuth_.get(u);
 
     userName_ = "Retrieving...";
@@ -62,8 +63,9 @@ void SpotifyAppAuthentication::updateUserData_()
                             const auto document = QJsonDocument::fromJson(data);
                             const auto root = document.object();
                             userName_ = root.value("display_name").toString();
-                            qDebug() << "Username: " << userName_;
-                            emit userDataReceivedSig(userName_);
+                            userId_ = root.value("id").toString();
+                            qDebug() << "Username: (id)" << userName_ <<"(" <<userId_ <<")";
+                            emit userDataReceivedSig(userId_, userName_);
                             reply->deleteLater();
                         }
                     });
@@ -74,10 +76,11 @@ void SpotifyAppAuthentication::updateUserData_()
 /*---------------------------------------------------------------------------*/
 void SpotifyAppAuthentication::grantedSlot_ ()
 {
-    ;
     qDebug()<< "Token: " << spotifyAuth_.token()  << " has granted access";
     qDebug()<< "RToken: " << spotifyAuth_.refreshToken()  << " has granted access";
     qDebug()<< "Expiren: " << spotifyAuth_.expirationAt().toString() << " has granted access";
+
+    emit spotifyTokenReceivedSig(spotifyAuth_.token());
 
     isGranted_ = true;
     updateUserData_();

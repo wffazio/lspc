@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core
-QT += sql widgets networkauth
+QT += core
+QT += sql widgets networkauth multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,20 +28,19 @@ SOURCES += \
     src/mydb.cpp \
     src/main.cpp \
     src/spotifyappauthentication.cpp \
-    src/tabbedwindow.cpp \
+    src/viewmodel.cpp \
     src/playercontrols.cpp \
     src/spotifywebapi.cpp \
-    src/appmainwindow.cpp
+    src/view.cpp
 
 HEADERS += \
-    inc/mydb.hpp \
     inc/spotifyappauthentication.h \
-    inc/tabbedwindow.h \
     inc/playercontrols.h \
     inc/spotifywebapi.h \
-    inc/appmainwindow.h
+    inc/viewmodel.h \
+    inc/mydb.h \
+    inc/view.h
 
 requires(qtConfig(tableview))
 
-RESOURCES += \
-    res/lsp.qrc
+RESOURCES +=

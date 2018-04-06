@@ -3,6 +3,7 @@
 
 #include <QOAuth2AuthorizationCodeFlow>
 
+#define SPOTIFY_ACCOUNTS_BASE_URL "https://accounts.spotify.com"
 
 class SpotifyAppAuthentication : public QObject
 {
@@ -22,13 +23,15 @@ private:
     QOAuth2AuthorizationCodeFlow spotifyAuth_;
     bool isGranted_;
     QString userName_ = "None";
+    QString userId_ = "";
 
 private slots:
     void grantedSlot_();
     void authStatusChangedSlot_ (QAbstractOAuth::Status status);
 
 signals:
-    void userDataReceivedSig(QString userName);
+    void spotifyTokenReceivedSig(QString token);
+    void userDataReceivedSig(QString userId, QString userName);
 
 
 };

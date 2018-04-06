@@ -1,25 +1,16 @@
-#include "inc/appmainwindow.h"
-#include "inc/mydb.hpp"
+#include "inc/view.h"
+#include "inc/mydb.h"
 #include <QApplication>
 #include <QDebug>
-#include "inc/tabbedwindow.h"
+#include "inc/viewmodel.h"
 
 
 /*---------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {
-    MyDb playlistDb;
     QApplication app(argc, argv);
-    if (!playlistDb.connect())
-    {
-        qDebug() << "Db NOT connected";
-        return EXIT_FAILURE;
-    }
-    qDebug() << "Db connected";
-    AppMainWindow w(playlistDb);
+    MyView w;
     w.show();
-    //AppWindowManager::TabbedMainWindow tw(playlistDb);
-    //tw.show();
 
     return app.exec();
 }
