@@ -174,8 +174,6 @@ bool MyDb::createSearchTable()
 }
 
 
-
-
 /*---------------------------------------------------------------------------*/
 bool MyDb::addSearchResults(const QVariantMap &insertTracks)
 {
@@ -218,16 +216,22 @@ bool MyDb::addSearchResults(const QVariantMap &insertTracks)
     return insertSuccessfully;
 }
 
+
+/*---------------------------------------------------------------------------*/
 QString MyDb::searchResultsTableName() const
 {
     return searchResultsTableName_;
 }
 
+
+/*---------------------------------------------------------------------------*/
 QSqlDatabase MyDb::searchResultDb() const
 {
     return searchResultDb_;
 }
 
+
+/*---------------------------------------------------------------------------*/
 QSqlDatabase MyDb::playListDb() const
 {
     return playListDb_;

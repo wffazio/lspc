@@ -2,19 +2,21 @@
 #include <QToolButton>
 #include <QStyle>
 #include <QBoxLayout>
+#include <QUrl>
+#include <QDebug>
 
 
 #define DEFAULT_BUTTON_H (40)
 #define DEFAULT_BUTTON_W (DEFAULT_BUTTON_H*3)
 
-
+/*---------------------------------------------------------------------------*/
 PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
 {
     QHBoxLayout *controlBoxLayout = new QHBoxLayout;
-    btnPlayPause_ = new QToolButton(this);
-    btnPlayPause_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    btnPlayStop_ = new QToolButton(this);
+    btnPlayStop_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(btnPlayPause_, &QAbstractButton::clicked, this, &PlayerControls::playClickedSlot_);
+    connect(btnPlayStop_, &QAbstractButton::clicked, this, &PlayerControls::buttonPlayStopClickedSlot_);
 
     btnNext_ = new QToolButton(this);
     btnNext_->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
@@ -31,10 +33,10 @@ PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
     //btnNext_->adjustSize();
     btnNext_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
     btnPrev_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
-    btnPlayPause_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
+    btnPlayStop_->setMinimumSize(DEFAULT_BUTTON_W,DEFAULT_BUTTON_H);
 
     controlBoxLayout->addWidget(btnPrev_);
-    controlBoxLayout->addWidget(btnPlayPause_);
+    controlBoxLayout->addWidget(btnPlayStop_);
     controlBoxLayout->addWidget(btnNext_);
 
     //controlBoxLayout->setMargin(20);
@@ -43,21 +45,61 @@ PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
 
 }
 
-void PlayerControls::playClickedSlot_()
+
+/*---------------------------------------------------------------------------*/
+QVariantMap PlayerControls::currentTrack() const
 {
+    return currentTrack_;
+}
+
+
+/*---------------------------------------------------------------------------*/
+void PlayerControls::setCurrentTrack(const QVariantMap &currentTrack)
+{
+    currentTrack_ = currentTrack;
+}
+
+/*---------------------------------------------------------------------------*/
+void PlayerControls::playerPlaySlot()
+{
+    if ( !currentTrack_.isEmpty() )
+    {
+        btnPlayStop_->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+        btnNext_->setEnabled(true);
+        btnPrev_->setEnabled(true);
+        isPlaying_ = true;
+        emit playSig(currentTrack_);
+    }
+}
+
+
+/*---------------------------------------------------------------------------*/
+void PlayerControls::playerStopSlot()
+{
+    btnPlayStop_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    btnNext_->setEnabled(false);
+    btnPrev_->setEnabled(false);
+    isPlaying_ =false;
+    emit stopSig();
+}
+
+/*---------------------------------------------------------------------------*/
+void PlayerControls::buttonPlayStopClickedSlot_()
+{
+
     if (isPlaying_)
     {
-        btnPlayPause_->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-        btnNext_->setEnabled(false);
-        btnPrev_->setEnabled(false);
-        emit pauseSig();
+        playerStopSlot();
     }
     else
     {
-        btnPlayPause_->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
-        btnNext_->setEnabled(true);
-        btnPrev_->setEnabled(true);
-        emit playSig();
+        playerPlaySlot();
     }
-    isPlaying_ = !isPlaying_;
+}
+
+
+/*---------------------------------------------------------------------------*/
+void PlayerControls::trackSelectedSlot_(QVariantMap& track)
+{
+    qDebug() << __func__;
 }

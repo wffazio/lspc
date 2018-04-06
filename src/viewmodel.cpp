@@ -3,6 +3,8 @@
 #include "inc/view.h"
 #include <QHeaderView>
 #include <QPushButton>
+#include <QTableView>
+#include <QModelIndex>
 
 
 #define PLAYLIST_MINIMUM_WIDTH 500
@@ -36,16 +38,23 @@ ViewModel::ViewModel(QWidget *parent)
     accountTabWdg->setLayout(accountBoxLayout);
     this->addTab(createSearchTab_(parent),tr("Search"));
     this->addTab(accountTabWdg,tr("Account"));
-    connect(this,QTabWidget::currentChanged,this,ViewModel::currentTabChangedSlot_);    
-    connect(player_, &PlayerControls::playSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
-    connect(player_, &PlayerControls::pauseSig,this->spotifyApis_, &SpotifyWebApi::playSlot);
+
+    connect(player_, &PlayerControls::playSig,spotifyApis_, &SpotifyWebApi::playSlot);
+    connect(player_, &PlayerControls::stopSig,spotifyApis_, &SpotifyWebApi::stopSlot);
+
     connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,this, &ViewModel::updateTabsWithUserDataSlot);
-    connect(spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,this->cdb_,&MyDb::newSearchResultReceivedSlot);
-    connect(cdb_, &MyDb::searchResultsInsertedSig,this,&ViewModel::updateTabsWithSearchResultSlot);
-    connect(cdb_, &MyDb::tracksInsertedSig,this,&ViewModel::updateTabsWithPlaylistSlot);
-    connect(this,&ViewModel::startSearchTrackSig,this->spotifyApis_,&SpotifyWebApi::processSearchRequest);
     connect(currentAuthentication_, &SpotifyAppAuthentication::spotifyTokenReceivedSig,
             spotifyApis_, &SpotifyWebApi::storeToken);
+
+    connect(spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,cdb_,&MyDb::newSearchResultReceivedSlot);
+
+    connect(cdb_, &MyDb::searchResultsInsertedSig,this,&ViewModel::updateTabsWithSearchResultSlot);
+    connect(cdb_, &MyDb::tracksInsertedSig,this,&ViewModel::updateTabsWithPlaylistSlot);
+
+    connect(this,&ViewModel::startSearchTrackSig,spotifyApis_,&SpotifyWebApi::processSearchRequest);
+    connect(this,&QTabWidget::currentChanged,this,&ViewModel::currentTabChangedSlot_);
+
+    connect(trackViewWdg_, &QTableView::doubleClicked,this,&ViewModel::processSelectAndPlayReqSlot_);
 
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addWidget(tabWidget);
@@ -168,7 +177,7 @@ ViewModel::createSearchTab_(QWidget *parent)
     artistContentToSearch_->setPlaceholderText(QObject::tr("(artist name)"));
 
     searchButton->setText(tr("Search..."));
-    connect(searchButton, QPushButton::clicked,this,ViewModel::searchButtonClickedSlot_);
+    connect(searchButton, &QPushButton::clicked,this,&ViewModel::searchButtonClickedSlot_);
 
     filtersContentLayout->addWidget(trackContentToSearch_, 0, 0);
     filtersContentLayout->addWidget(albumContentToSearch_, 0, 0);
@@ -210,7 +219,7 @@ ViewModel::createSearchTab_(QWidget *parent)
     QLocale locale = searchResultsWdg->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     searchResultsWdg->setLocale(locale);
-    connect(searchResultsWdg, QTableView::doubleClicked,this,ViewModel::addSelectionToPlaylistSlot_);
+    connect(searchResultsWdg, &QTableView::doubleClicked,this,&ViewModel::addSelectionToPlaylistSlot_);
 
     resultsBoxLayout->addWidget(searchResultsWdg);
     resultBox->setLayout(resultsBoxLayout);
@@ -305,4 +314,35 @@ void ViewModel::addSelectionToPlaylistSlot_(const QModelIndex &index)
         cdb_->addTrack(trackMap);
     }
 
+}
+
+
+void ViewModel::processSelectAndPlayReqSlot_(const QModelIndex &index)
+{
+    QString track = playlistTableModel_->index(index.row(),
+                                                        (int)DbKeysIndex::TITLE)
+                                                        .data().toString();
+    QString album = searchResultsTableModel_->index(index.row(),
+                                                    (int)DbKeysIndex::ALBUM)
+                                                    .data().toString();
+    QString artist = searchResultsTableModel_->index(index.row(),
+                                                     (int)DbKeysIndex::ARTIST)
+                                                      .data().toString();
+    QString preview = searchResultsTableModel_->index(index.row(),
+                                                (int)DbKeysIndex::URL)
+                                                .data().toString();
+    QString id = searchResultsTableModel_->index(index.row(),
+                                                 (int)DbKeysIndex::TRACK_ID)
+                                                 .data().toString();
+    QVariantMap trackMap {
+                          {TrackTableEntryKeyMap_[DbKeysIndex::TITLE],track},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::ALBUM],album},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::ARTIST],artist},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::URL],preview},
+                          {TrackTableEntryKeyMap_[DbKeysIndex::TRACK_ID],id},
+                         };
+    player_->playerStopSlot();
+    player_->setCurrentTrack(trackMap);
+    player_->playerPlaySlot();
+    qDebug() << __func__;
 }

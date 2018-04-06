@@ -27,12 +27,17 @@ SpotifyWebApi::SpotifyWebApi()
 
 
 /*---------------------------------------------------------------------------*/
-void SpotifyWebApi::playSlot()
+void SpotifyWebApi::playSlot(QVariantMap & track)
 {
-    qDebug() << "Playing";    
+    qDebug() << "Playing" << track.value(TrackTableEntryKeyMap_[DbKeysIndex::TITLE]) ;
 }
 
 
+/*---------------------------------------------------------------------------*/
+void SpotifyWebApi::stopSlot()
+{
+    qDebug() << "Stoping";
+}
 /*---------------------------------------------------------------------------*/
 void SpotifyWebApi::onNetworkReplyReceived_(QNetworkReply *reply)
 {
@@ -88,6 +93,7 @@ void SpotifyWebApi::onNetworkReplyReceived_(QNetworkReply *reply)
 /*---------------------------------------------------------------------------*/
 void SpotifyWebApi::requestServerStatus_()
 {
+    qDebug() << __func__;
     /*nothing for now*/
 }
 

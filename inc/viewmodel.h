@@ -37,12 +37,14 @@ private:
 
 public slots:
     void updateTabsWithUserDataSlot(QString userId, QString userName);
-    void updateTabsWithPlaylistSlot(const QVariantMap & track);    
+    void updateTabsWithPlaylistSlot(const QVariantMap & track);
+    void updateTabsWithSearchResultSlot(QList<QVariantMap> * list);
 
 signals:
     void startSearchTrackSig(QString track="",QString artist = "",QString album="");
 
 private slots:
+    void processSelectAndPlayReqSlot_(const QModelIndex &index);
     void currentTabChangedSlot_(int index);
     void searchButtonClickedSlot_();
     void addSelectionToPlaylistSlot_(const QModelIndex &index);
