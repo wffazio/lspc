@@ -60,11 +60,6 @@ ViewModel::ViewModel(QWidget *parent)
     connect(trackViewWdg_, &QTableView::clicked,this,&ViewModel::processSelectSlot_);
     connect(deleteBtn_,QToolButton::clicked,this,&ViewModel::deleteSelectedTrackSlot_);
 
-    //QVBoxLayout *mainLayout = new QVBoxLayout;
-    //mainLayout->addWidget(tabWidget);
-    //this->setLayout(mainLayout);
-
-    //setWindowTitle(tr("Local Spotify Playlist Creator"));
 }
 
 
@@ -105,14 +100,12 @@ ViewModel::createPlaylistView_(QSqlTableModel*table)
     trackViewWdgLocal->setColumnHidden((int)DbKeysIndex::TRACK_ID,true);
     trackViewWdgLocal->setColumnHidden((int)DbKeysIndex::URL,true);
     trackViewWdgLocal->sortByColumn((int)DbKeysIndex::TRACK_ID,Qt::AscendingOrder);
-    //trackViewWdgLocal->setColumnWidth(1,150);
     trackViewWdgLocal->setWordWrap(false);
     QHeaderView * header = trackViewWdgLocal->horizontalHeader();
     header->setSectionResizeMode(QHeaderView::ResizeToContents);
     header->setSortIndicatorShown(true);
     trackViewWdgLocal->setHorizontalHeader(header);
 
-    //trackViewWdgLocal->horizontalHeader()->hide();
     QLocale locale = trackViewWdgLocal->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     trackViewWdgLocal->setLocale(locale);
@@ -158,11 +151,8 @@ ViewModel::createPlaylistTab_(QSqlTableModel*table)
 
     gridLayout->addWidget(createPlaylistViewBox_(table),0,0);
     gridLayout->addWidget(player_,1,0);
-    gridLayout->setColumnStretch(1, 1);
     gridLayout->setColumnStretch(0, 1);
-    /*second column is empty yet*/
     gridLayout->setColumnMinimumWidth(0,PLAYLIST_MINIMUM_WIDTH);
-    gridLayout->setColumnMinimumWidth(1,200);
 
     localPlaylistTab->setLayout(gridLayout);
     return localPlaylistTab;
@@ -177,7 +167,7 @@ ViewModel::createSearchTab_(QWidget *parent)
     QVBoxLayout *tabLayout = new QVBoxLayout;
     QPushButton *searchButton = new QPushButton;
     QGroupBox * searchBox = new QGroupBox(QObject::tr("Search:"));
-    QGroupBox * resultBox = new QGroupBox(QObject::tr("Results:"));
+    QGroupBox * resultBox = new QGroupBox(QObject::tr("Results:<b>Double click to add</b>"));
     QHBoxLayout *filtersContentLayout = new QHBoxLayout;
     QTableView * searchResultsWdg = new QTableView;
     QVBoxLayout * resultsBoxLayout = new QVBoxLayout;
@@ -221,14 +211,12 @@ ViewModel::createSearchTab_(QWidget *parent)
     searchResultsWdg->setColumnHidden((int)DbKeysIndex::TRACK_ID,true);
     searchResultsWdg->setColumnHidden((int)DbKeysIndex::URL,true);
     searchResultsWdg->sortByColumn((int)DbKeysIndex::TRACK_ID,Qt::AscendingOrder);
-    //trackViewWdgLocal->setColumnWidth(1,150);
     searchResultsWdg->setWordWrap(false);
     QHeaderView * header = searchResultsWdg->horizontalHeader();
     header->setSectionResizeMode(QHeaderView::ResizeToContents);
     header->setSortIndicatorShown(true);
     searchResultsWdg->setHorizontalHeader(header);
 
-    //trackViewWdgLocal->horizontalHeader()->hide();
     QLocale locale = searchResultsWdg->locale();
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     searchResultsWdg->setLocale(locale);
@@ -285,7 +273,6 @@ void ViewModel::searchButtonClickedSlot_()
     QString track(trackContentToSearch_->text());
     QString artist(artistContentToSearch_->text());
     QString album(albumContentToSearch_->text());
-    //SpotifyWebApiSearch("Sepultura",SpotifyWebApiRequestType::spotifyWebApiRequestTypeTrackSearch);
     emit startSearchTrackSig(track,artist,album);
 }
 
