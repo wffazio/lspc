@@ -1,4 +1,5 @@
 #include "inc/playercontrols.h"
+#include "inc/mydb.h"
 #include <QToolButton>
 #include <QStyle>
 #include <QBoxLayout>
@@ -38,11 +39,9 @@ PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
     controlBoxLayout->addWidget(btnPrev_);
     controlBoxLayout->addWidget(btnPlayStop_);
     controlBoxLayout->addWidget(btnNext_);
-
-    //controlBoxLayout->setMargin(20);
-
     this->setLayout(controlBoxLayout);
 
+    multimedia_ = new QMediaPlayer;
 }
 
 
@@ -69,6 +68,9 @@ void PlayerControls::playerPlaySlot()
         btnPrev_->setEnabled(true);
         isPlaying_ = true;
         emit playSig(currentTrack_);
+        multimedia_->setMedia(QUrl(currentTrack_.value(TrackTableEntryKeyMap_[DbKeysIndex::URL]).toString()));
+        multimedia_->setVolume(50);
+        multimedia_->play();
     }
 }
 
@@ -80,13 +82,13 @@ void PlayerControls::playerStopSlot()
     btnNext_->setEnabled(false);
     btnPrev_->setEnabled(false);
     isPlaying_ =false;
+    multimedia_->stop();
     emit stopSig();
 }
 
 /*---------------------------------------------------------------------------*/
 void PlayerControls::buttonPlayStopClickedSlot_()
 {
-
     if (isPlaying_)
     {
         playerStopSlot();

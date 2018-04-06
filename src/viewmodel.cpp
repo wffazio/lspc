@@ -322,16 +322,16 @@ void ViewModel::processSelectAndPlayReqSlot_(const QModelIndex &index)
     QString track = playlistTableModel_->index(index.row(),
                                                         (int)DbKeysIndex::TITLE)
                                                         .data().toString();
-    QString album = searchResultsTableModel_->index(index.row(),
+    QString album = playlistTableModel_->index(index.row(),
                                                     (int)DbKeysIndex::ALBUM)
                                                     .data().toString();
-    QString artist = searchResultsTableModel_->index(index.row(),
+    QString artist = playlistTableModel_->index(index.row(),
                                                      (int)DbKeysIndex::ARTIST)
                                                       .data().toString();
-    QString preview = searchResultsTableModel_->index(index.row(),
+    QString preview = playlistTableModel_->index(index.row(),
                                                 (int)DbKeysIndex::URL)
                                                 .data().toString();
-    QString id = searchResultsTableModel_->index(index.row(),
+    QString id = playlistTableModel_->index(index.row(),
                                                  (int)DbKeysIndex::TRACK_ID)
                                                  .data().toString();
     QVariantMap trackMap {

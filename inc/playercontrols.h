@@ -3,6 +3,7 @@
 #include<QWidget>
 #include <QToolButton>
 #include <QModelIndex>
+#include <QMediaPlayer>
 
 class PlayerControls : public QWidget
 {
@@ -18,6 +19,7 @@ private:
     QToolButton *btnNext_= nullptr;
     QToolButton *btnPrev_= nullptr;
     QVariantMap currentTrack_;
+    QMediaPlayer * multimedia_ = nullptr;
 
 signals:
     void nextClickedSig();
