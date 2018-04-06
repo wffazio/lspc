@@ -53,6 +53,8 @@ private slots:
     void searchButtonClickedSlot_();
     void addSelectionToPlaylistSlot_(const QModelIndex &index);
     void deleteSelectedTrackSlot_();
+    void processNextTrackSlot_();
+    void processPrevTrackSlot_();
 };
 
 #endif // VIEWMODEL_H

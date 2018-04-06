@@ -40,9 +40,8 @@ ViewModel::ViewModel(QWidget *parent)
     this->addTab(createSearchTab_(parent),tr("Search"));
     this->addTab(accountTabWdg,tr("Account"));
 
-    connect(player_, &PlayerControls::playSig,spotifyApis_, &SpotifyWebApi::playSlot);
-    connect(player_, &PlayerControls::stopSig,spotifyApis_, &SpotifyWebApi::stopSlot);
-
+    connect(player_, &PlayerControls::nextClickedSig,this,&ViewModel::processNextTrackSlot_ );
+    connect(player_, &PlayerControls::prevClickedSig,this,&ViewModel::processPrevTrackSlot_ );
     connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,this, &ViewModel::updateTabsWithUserDataSlot);
     connect(currentAuthentication_, &SpotifyAppAuthentication::spotifyTokenReceivedSig,
             spotifyApis_, &SpotifyWebApi::storeToken);
@@ -60,6 +59,7 @@ ViewModel::ViewModel(QWidget *parent)
     connect(trackViewWdg_, &QTableView::pressed,this,&ViewModel::processSelectSlot_);
     connect(trackViewWdg_, &QTableView::clicked,this,&ViewModel::processSelectSlot_);
     connect(deleteBtn_,QToolButton::clicked,this,&ViewModel::deleteSelectedTrackSlot_);
+
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addWidget(tabWidget);
     //this->setLayout(mainLayout);
@@ -388,4 +388,58 @@ void ViewModel::deleteSelectedTrackSlot_()
     cdb_->delTrack(player_->currentTrack());
     player_->setCurrentTrack(QVariantMap());
     //player_->setCurrentTrack(processSelect_(index));
+}
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::processNextTrackSlot_()
+{
+    int row;
+    qDebug() << __func__;
+
+    if (trackViewWdg_->selectionModel()->selection().isEmpty())
+    {
+        row=0;
+    }
+    else
+    {
+        row = trackViewWdg_->selectionModel()->selection().indexes()[0].row();
+        row++;
+    }
+    if (row >= playlistTableModel_->rowCount())
+    {
+        row = 0;
+    }
+    trackViewWdg_->selectRow(row);
+    processSelectAndPlayReqSlot_(playlistTableModel_->index(row,0));
+
+}
+
+
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::processPrevTrackSlot_()
+{
+    qDebug() << __func__;
+
+    int row;
+
+    if (trackViewWdg_->selectionModel()->selection().isEmpty())
+    {
+        row = playlistTableModel_->rowCount() -1;
+    }
+    else
+    {
+        row = trackViewWdg_->selectionModel()->selection().indexes()[0].row();
+        row--;
+    }
+
+    if (row < 0 )
+    {
+        row = playlistTableModel_->rowCount() -1;
+    }
+    trackViewWdg_->selectRow(row);
+    processSelectAndPlayReqSlot_(playlistTableModel_->index(row,0));
+
 }
