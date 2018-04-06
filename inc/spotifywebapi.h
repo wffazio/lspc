@@ -58,8 +58,6 @@ signals:
 public slots:
     void processSearchRequest(QString track=nullptr, QString artist = nullptr, QString album=nullptr);
     void storeToken(QString token);
-    void playSlot(QVariantMap&track);
-    void stopSlot();
 };
 
 #endif // SPOTIFYWEBAPI_H

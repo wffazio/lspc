@@ -42,6 +42,7 @@ PlayerControls::PlayerControls(QWidget *parent): QWidget(parent)
     this->setLayout(controlBoxLayout);
 
     multimedia_ = new QMediaPlayer;
+    connect(multimedia_, &QMediaPlayer::stateChanged, this, &PlayerControls::multimediaChangedStateSlot_);
 }
 
 
@@ -99,9 +100,18 @@ void PlayerControls::buttonPlayStopClickedSlot_()
     }
 }
 
-
 /*---------------------------------------------------------------------------*/
-void PlayerControls::trackSelectedSlot_(QVariantMap& track)
+void PlayerControls::multimediaChangedStateSlot_(QMediaPlayer::State state)
 {
-    qDebug() << __func__;
+    switch (state)
+    {
+        case QMediaPlayer::StoppedState:
+            if (isPlaying_)
+            {
+                emit nextClickedSig();
+            }
+            break;
+        default:
+            break;
+    }
 }

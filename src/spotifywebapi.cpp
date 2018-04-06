@@ -27,18 +27,6 @@ SpotifyWebApi::SpotifyWebApi()
 
 
 /*---------------------------------------------------------------------------*/
-void SpotifyWebApi::playSlot(QVariantMap & track)
-{
-    qDebug() << "Playing" << track.value(TrackTableEntryKeyMap_[DbKeysIndex::TITLE]) ;
-}
-
-
-/*---------------------------------------------------------------------------*/
-void SpotifyWebApi::stopSlot()
-{
-    qDebug() << "Stoping";
-}
-/*---------------------------------------------------------------------------*/
 void SpotifyWebApi::onNetworkReplyReceived_(QNetworkReply *reply)
 {
     auto requestIterator = sentRequests_.find(reply);

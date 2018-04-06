@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QTableView>
 #include <QModelIndex>
+#include <QVBoxLayout>
 
 
 #define PLAYLIST_MINIMUM_WIDTH 500
@@ -39,9 +40,8 @@ ViewModel::ViewModel(QWidget *parent)
     this->addTab(createSearchTab_(parent),tr("Search"));
     this->addTab(accountTabWdg,tr("Account"));
 
-    connect(player_, &PlayerControls::playSig,spotifyApis_, &SpotifyWebApi::playSlot);
-    connect(player_, &PlayerControls::stopSig,spotifyApis_, &SpotifyWebApi::stopSlot);
-
+    connect(player_, &PlayerControls::nextClickedSig,this,&ViewModel::processNextTrackSlot_ );
+    connect(player_, &PlayerControls::prevClickedSig,this,&ViewModel::processPrevTrackSlot_ );
     connect(currentAuthentication_, &SpotifyAppAuthentication::userDataReceivedSig,this, &ViewModel::updateTabsWithUserDataSlot);
     connect(currentAuthentication_, &SpotifyAppAuthentication::spotifyTokenReceivedSig,
             spotifyApis_, &SpotifyWebApi::storeToken);
@@ -49,7 +49,7 @@ ViewModel::ViewModel(QWidget *parent)
     connect(spotifyApis_, &SpotifyWebApi::newSearchResultReceivedSig,cdb_,&MyDb::newSearchResultReceivedSlot);
 
     connect(cdb_, &MyDb::searchResultsInsertedSig,this,&ViewModel::updateTabsWithSearchResultSlot);
-    connect(cdb_, &MyDb::tracksInsertedSig,this,&ViewModel::updateTabsWithPlaylistSlot);
+    connect(cdb_, &MyDb::playlistChangedSig,this,&ViewModel::updateTabsWithPlaylistSlot);
 
     connect(this,&ViewModel::startSearchTrackSig,spotifyApis_,&SpotifyWebApi::processSearchRequest);
     connect(this,&QTabWidget::currentChanged,this,&ViewModel::currentTabChangedSlot_);
@@ -58,7 +58,7 @@ ViewModel::ViewModel(QWidget *parent)
     connect(trackViewWdg_, &QTableView::activated,this,&ViewModel::processSelectAndPlayReqSlot_);
     connect(trackViewWdg_, &QTableView::pressed,this,&ViewModel::processSelectSlot_);
     connect(trackViewWdg_, &QTableView::clicked,this,&ViewModel::processSelectSlot_);
-
+    connect(deleteBtn_,QToolButton::clicked,this,&ViewModel::deleteSelectedTrackSlot_);
 
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addWidget(tabWidget);
@@ -73,6 +73,7 @@ QSqlTableModel *
 ViewModel::createTableModelForPlaylist_(QWidget *parent)
 {
     QSqlTableModel * tableModelLocal = new QSqlTableModel(parent,cdb_->playListDb());
+
 
     tableModelLocal->setTable(cdb_->tracksTableName());
     tableModelLocal->setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -125,16 +126,24 @@ ViewModel::createPlaylistView_(QSqlTableModel*table)
 QGroupBox *
 ViewModel::createPlaylistViewBox_(QSqlTableModel*table)
 {
-    static QLineEdit *filterWdg_;
+    QLineEdit *filterWdg;
     QVBoxLayout *tracklistBoxLayout = new QVBoxLayout;
     QGroupBox * tracksListBox = new QGroupBox(QObject::tr("Faixas"));
 
-    filterWdg_ = new QLineEdit();
-    filterWdg_->setPlaceholderText(QObject::tr("(filter)"));
+    filterWdg = new QLineEdit();
+    filterWdg->setPlaceholderText(QObject::tr("(filter)"));
+
     trackViewWdg_ = createPlaylistView_(table);
 
-    tracklistBoxLayout->addWidget(filterWdg_, 0, 0);
+    deleteBtn_ = new QToolButton();
+    deleteBtn_->setDisabled(true);
+    deleteBtn_->setIcon(style()->standardIcon(QStyle::SP_DialogCloseButton));
+    deleteBtn_->setIconSize(QSize(25,25));
+
+
+    tracklistBoxLayout->addWidget(filterWdg, 0, 0);
     tracklistBoxLayout->addWidget(trackViewWdg_, 0, 0);
+    tracklistBoxLayout->addWidget(deleteBtn_, 0, Qt::AlignRight);
     tracksListBox->setLayout(tracklistBoxLayout);
     return tracksListBox;
 }
@@ -356,6 +365,7 @@ void ViewModel::processSelectSlot_(const QModelIndex &index)
 {
     qDebug() << __func__;
     player_->setCurrentTrack(processSelect_(index));
+    deleteBtn_->setDisabled(false);
 }
 
 
@@ -365,5 +375,71 @@ void ViewModel::processSelectAndPlayReqSlot_(const QModelIndex &index)
     qDebug() << __func__;
     player_->playerStopSlot();
     player_->setCurrentTrack(processSelect_(index));
+    deleteBtn_->setDisabled(false);
     player_->playerPlaySlot();
+}
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::deleteSelectedTrackSlot_()
+{
+    qDebug() << __func__;
+    deleteBtn_->setDisabled(true);
+    cdb_->delTrack(player_->currentTrack());
+    player_->setCurrentTrack(QVariantMap());
+    //player_->setCurrentTrack(processSelect_(index));
+}
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::processNextTrackSlot_()
+{
+    int row;
+    qDebug() << __func__;
+
+    if (trackViewWdg_->selectionModel()->selection().isEmpty())
+    {
+        row=0;
+    }
+    else
+    {
+        row = trackViewWdg_->selectionModel()->selection().indexes()[0].row();
+        row++;
+    }
+    if (row >= playlistTableModel_->rowCount())
+    {
+        row = 0;
+    }
+    trackViewWdg_->selectRow(row);
+    processSelectAndPlayReqSlot_(playlistTableModel_->index(row,0));
+
+}
+
+
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::processPrevTrackSlot_()
+{
+    qDebug() << __func__;
+
+    int row;
+
+    if (trackViewWdg_->selectionModel()->selection().isEmpty())
+    {
+        row = playlistTableModel_->rowCount() -1;
+    }
+    else
+    {
+        row = trackViewWdg_->selectionModel()->selection().indexes()[0].row();
+        row--;
+    }
+
+    if (row < 0 )
+    {
+        row = playlistTableModel_->rowCount() -1;
+    }
+    trackViewWdg_->selectRow(row);
+    processSelectAndPlayReqSlot_(playlistTableModel_->index(row,0));
+
 }

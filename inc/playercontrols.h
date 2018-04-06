@@ -28,8 +28,8 @@ signals:
     void stopSig();
 
 private slots:
-    void trackSelectedSlot_(QVariantMap& track);
     void buttonPlayStopClickedSlot_();
+    void multimediaChangedStateSlot_(QMediaPlayer::State state);
 public slots:
     void playerPlaySlot();
     void playerStopSlot();
