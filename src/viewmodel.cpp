@@ -6,6 +6,7 @@
 #include <QTableView>
 #include <QModelIndex>
 #include <QVBoxLayout>
+#include<QLineEdit>
 
 
 #define PLAYLIST_MINIMUM_WIDTH 500
@@ -138,6 +139,9 @@ ViewModel::createPlaylistViewBox_(QSqlTableModel*table)
     tracklistBoxLayout->addWidget(trackViewWdg_, 0, 0);
     tracklistBoxLayout->addWidget(deleteBtn_, 0, Qt::AlignRight);
     tracksListBox->setLayout(tracklistBoxLayout);
+
+    connect(filterWdg,&QLineEdit::textChanged,this,&ViewModel::filterPlaylistSlot_);
+
     return tracksListBox;
 }
 
@@ -400,6 +404,7 @@ void ViewModel::processNextTrackSlot_()
     trackViewWdg_->selectRow(row);
     processSelectAndPlayReqSlot_(playlistTableModel_->index(row,0));
 
+
 }
 
 
@@ -428,5 +433,19 @@ void ViewModel::processPrevTrackSlot_()
     }
     trackViewWdg_->selectRow(row);
     processSelectAndPlayReqSlot_(playlistTableModel_->index(row,0));
+
+}
+
+
+
+/*---------------------------------------------------------------------------*/
+void ViewModel::filterPlaylistSlot_(const QString &filter)
+{
+    QString sqlQueryString =  QString("%1 like'%%2%' or %3 like '%%2%' or %4 like '%%2%'")
+            .arg(TrackTableEntryKeyMap_[DbKeysIndex::TITLE])
+            .arg(filter)
+            .arg(TrackTableEntryKeyMap_[DbKeysIndex::ALBUM])
+            .arg(TrackTableEntryKeyMap_[DbKeysIndex::ARTIST]);
+    playlistTableModel_->setFilter(sqlQueryString);
 
 }
